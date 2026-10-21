@@ -11,7 +11,8 @@ const [source, manifest] = await Promise.all([
   readFile(workerPath, "utf8"),
   readFile(manifestPath, "utf8"),
 ]);
-JSON.parse(manifest);
+const hosting=JSON.parse(manifest);
+assert(hosting.r2==null||typeof hosting.r2==="string","R2 binding must be a string");
 
 // A data URL forces ESM parsing even though the generated output has no package.json.
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
