@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import worker from '../dist/server/index.js';
+const html=await readFile('worker/app.html','utf8');
+new vm.Script(html.match(/<script>\s*([\s\S]*?)<\/script>/)[1]);
+const objects=new Map();const env={BUCKET:{async get(k){return objects.has(k)?{body:objects.get(k),httpMetadata:{contentType:'application/json'}}:null},async put(k,v){objects.set(k,v)}}};
+const req=(p,init)=>new Request('https://test.site'+p,init);
+assert.equal((await worker.fetch(req('/'),env)).status,200);
+const initial=await(await worker.fetch(req('/api/state'),env)).json();assert(initial===null||(Array.isArray(initial.notes)&&Array.isArray(initial.maps)));
+assert.equal((await worker.fetch(req('/api/state',{method:'PUT',body:'{}'}),env)).status,403);
+assert.equal((await worker.fetch(req('/api/state',{method:'PUT',headers:{Origin:'https://test.site'},body:'{}'}),env)).status,400);
+const data={notes:[{title:'Test',text:'[[linked]]'}],maps:[],assets:[]};
+assert.equal((await worker.fetch(req('/api/state',{method:'PUT',headers:{Origin:'https://test.site'},body:JSON.stringify(data)}),env)).status,200);
+const restored=await(await worker.fetch(req('/api/state'),env)).json();assert.deepEqual(restored.maps,data.maps);assert.deepEqual(restored.notes,initial?.hosted?initial.notes:data.notes);
+assert.equal((await worker.fetch(req('/api/file/test',{method:'PUT',headers:{Origin:'https://test.site','Content-Type':'image/png'},body:'image'}),env)).status,200);
+assert.equal(await(await worker.fetch(req('/api/file/test'),env)).text(),'image');
+console.log('Passed: client syntax, page, storage round-trip, uploads, origin and schema checks.');

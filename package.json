@@ -1,0 +1,12 @@
+{
+  "name": "sites-worker-esm-starter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "validate": "node scripts/validate-artifact.mjs",
+    "dev": "node scripts/build.mjs && node scripts/preview.mjs",
+    "test": "node scripts/check.mjs && node --test scripts/note-media.test.mjs scripts/vault-sync.test.mjs",
+    "test:sync": "node --test scripts/vault-sync.test.mjs"
+  }
+}
