@@ -18,9 +18,8 @@ export async function handleRequest(req,res){
    const snapshot=await vault.snapshot();sendJSON(res,{revision:snapshot.revision,folder:'Obsidian Campaign'});return;
   }
   if(req.method==='GET'&&url.pathname==='/api/state'){
-   const snapshot=await vault.snapshot(),saved=await env.BUCKET.get('vault/state.json');
-   const state=saved?JSON.parse(saved.body.toString()):{maps:[],assets:[]};
-   sendJSON(res,{...state,notes:snapshot.notes,leafletData:snapshot.leafletData,assets:[...(state.assets||[]).filter(a=>!a.url.startsWith('/local/file/')&&!snapshot.assets.some(local=>local.path===a.path)),...snapshot.assets],localRevision:snapshot.revision});return;
+   const snapshot=await vault.snapshot();const state={maps:[],assets:[]};
+   sendJSON(res,{...state,hosted:false,notes:snapshot.notes,zoomData:snapshot.zoomData,assets:[...(state.assets||[]).filter(a=>!a.url.startsWith('/local/file/')&&!snapshot.assets.some(local=>local.path===a.path)),...snapshot.assets],localRevision:snapshot.revision});return;
   }
   if(req.method==='GET'&&url.pathname.startsWith('/local/file/')){
    const snapshot=await vault.snapshot(),file=snapshot.files.get(decodeURIComponent(url.pathname.slice('/local/file/'.length)));

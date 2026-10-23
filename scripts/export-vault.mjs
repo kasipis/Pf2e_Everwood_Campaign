@@ -9,5 +9,5 @@ for(const asset of snapshot.assets){const file=snapshot.files.get(asset.path),by
 // Keep existing website pins while the browser rebuilds maps from current vault notes.
 const maps=(saved.maps||[]).filter(m=>!m.demo&&m.id!=='demo');
 for(const map of maps){const original=snapshot.assets.find(a=>a.url===map.url||a.path===map.url?.split('/local/file/')[1]?.split('?')[0]);const exported=assets.find(a=>a.path===original?.path);if(exported)map.url=exported.url;}
-const state={notes:snapshot.notes,assets,maps,leafletData:snapshot.leafletData,hosted:true};
+const state={notes:snapshot.notes,assets,maps,zoomData:snapshot.zoomData,hosted:true};
 await writeFile('published-vault/state.json',JSON.stringify(state));console.log('Exported '+state.notes.length+' notes and '+assets.length+' images for private hosting.');

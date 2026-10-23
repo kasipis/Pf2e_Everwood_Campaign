@@ -1,61 +1,57 @@
-# Everwood
+# Everwood — local Zoom Map viewer
 
-Campaign notes and interactive maps from the adjacent `Obsidian Campaign` vault.
+Work locally only. Do not publish or redeploy unless the user explicitly requests it.
 
-## Run
+## Start
 
-Requires Node.js 20+. Double-click `Start-Atlas.cmd`, or run `npm run dev`.
-Open http://localhost:4173 and keep the server running. Restart the server
-and reload the page after changes to the site code.
+Requires Node.js 20+. Run `Start-Atlas.cmd` or `npm run dev`, then open
+http://localhost:4173. Keep the server running. Restart it and reload the browser
+after changes to the site code.
 
-## Vault sync
+## Renderer
 
-Notes and images update every two seconds. Additions, edits, moves and deletions
-are reflected automatically. Notes under `Maps/`, including subfolders, appear
-in My maps and open in the atlas layout. Other notes appear in Notes.
+The standalone, read-only Zoom Map-compatible DOM renderer is embedded in the
+site. It uses image pixels from the top-left and a zoom scale multiplier, matching
+Obsidian Zoom Map's coordinate model. It does not load an external map library or
+execute Obsidian plugin code.
 
-Pictures support Obsidian embeds and Markdown image syntax. Fenced `leaflet`
-blocks support image maps, height, inline bounds and marker declarations.
-Saved markers are also read from the Obsidian Leaflet plugin's data.json,
-matched by map ID and image layer, and positioned using Obsidian coordinates.
-Edit imported markers in Obsidian. Changes sync without importing or rebuilding.
+Supported features:
+- Drag to pan, wheel/pointer zoom, double-click zoom, keyboard pan/zoom, touch pinch.
+- Normalized markers, note/map links, tooltips and per-marker zoom visibility.
+- Marker icons from the Zoom Map settings; white glyphs inside colored bubbles.
+- Back inside the lower-left corner, with map position and zoom restored.
+- Hide/show markers beside the zoom buttons.
+- Responsive fit mode, resize handling, active base image and visible image overlays.
+- Full note pages and a matching note description beneath each map.
 
-## Navigation
+Only `zoommap` and `zoom-map` blocks are rendered. The Maps gallery includes only
+notes containing these blocks. Vault notes and installed plugins are not modified
+by the renderer migration. Drawings, grids, text-layer editing, measurements and
+travel tools are not implemented in this read-only viewer.
 
-Click a pin to open its linked note or map immediately. Back appears inside the bottom-left of the Leaflet map when a previous map
-is available. It restores the previous map position and zoom, including chains
-of linked maps. All maps opens the map gallery.
+## Vault data
 
-The interface has no import, Add a map, Add pin, Layers or Fit map controls.
-Zoom and pan remain available. Hide markers beside the zoom buttons toggles
-map markers without changing the image or location list. There is no bundled sample world.
+The local server reads `../Obsidian Campaign` every two seconds. Markers come from
+`<image>.markers.json`, an explicit `.markers.json` sidecar, or inline `storage: note`
+data. Hidden marker layers are respected. Image, note, sidecar and icon-setting
+changes are included in live sync. Vault access is read-only.
 
-## Storage and checks
+Map notes stay under My maps. Clicking a marker opens its linked map or note
+immediately. The sidebar is sorted by marker type, then by name. An ordinary note
+with the same filename as a Maps note is shown below that map.
 
-Vault access is read-only. Existing site pins and site data are stored in
-`.preview-data/`. Obsidian settings are excluded except for the Leaflet plugin's
-saved map-marker data. Plugin code is never executed.
+## Source and verification
 
-Run `npm test` and `npm run validate` to check the client, local API, marker
-sync, map navigation and build artifact. Browser internet access is required
-for Leaflet, Marked and DOMPurify.
+- `worker/zoom-map-renderer.js`: viewport, gestures, controls and marker display.
+- `worker/note-media.js`: native Zoom Map parsing and data adaptation.
+- `scripts/vault-sync.mjs`: read-only vault and marker-file synchronization.
+- `worker/app.html`: site interface and page navigation.
 
-This folder connection applies to the local site. A remotely hosted site
-cannot read the folder on your computer. The existing private Site identity
-is retained in `.openai/hosting.json`; these local updates are not deployed.
+Run `npm test` and `npm run validate`. Tests cover the native coordinate system,
+zoom anchoring, marker visibility, dragging, pinch, resizing, Back navigation,
+inline and sidecar markers, note pages and the local HTTP API. Browser visual QA
+is unavailable in this environment. Marked, DOMPurify and Font Awesome still load
+from their CDNs; the map renderer itself has no external dependencies.
 
-Below each vault atlas map, the site displays the ordinary note with the same
-filename (for example, Maps/Harjah.md uses Locations/Harjah.md). The panel supports
-Markdown, images and links, omits duplicate Leaflet blocks, and refreshes with
-vault edits. It is hidden when no matching ordinary note exists.
-
-Notes open as full pages in the main content area. Their images, links and
-inline maps remain available, and edits sync while the note is open.
-
-Marker types, icon names and bubble colors come from the
-Obsidian Leaflet default marker and markerIcons settings. Type labels are
-preserved in the sidebar. Font Awesome supplies the matching icon glyphs on
-both atlas maps and inline maps. Changing type settings also triggers live sync.
-
-Marker glyphs are white and centered at a consistent size inside the colored
-bubble. The bubble fill uses the color assigned to its type in Obsidian.
+The previously deployed website is unchanged. The saved hosting identity is kept
+for reference; local builds do not push or deploy anything.
