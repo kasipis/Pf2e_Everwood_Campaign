@@ -2,3 +2,4 @@ dist/
 site.tar.gz
 .preview-data/
 
+node_modules/

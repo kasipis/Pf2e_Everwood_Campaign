@@ -1,4 +1,9 @@
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,rm,rename,mkdtemp} from 'node:fs/promises';
+import {resolve,dirname,join,sep} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createVaultSync} from './vault-sync.mjs';
+import {portraitThumbnail} from './portrait-thumbnails.mjs';
+import {characterPortrait} from '../worker/note-media.js';
 const media=(await readFile('worker/note-media.js','utf8')).replace(/^export /gm,'');
 const renderer=(await readFile('worker/zoom-map-renderer.js','utf8')).replace(/^export /gm,'');
 const css=await readFile('worker/zoom-map-renderer.css','utf8');
@@ -6,4 +11,27 @@ const html=(await readFile('worker/app.html','utf8')).replace('/*__NOTE_MEDIA__*
 const src=(await readFile('worker/index.js','utf8')).replace('/*__HTML__*/ ""',()=>JSON.stringify(html)).replace('/*__VENDORS__*/ {}','{}');
 await mkdir('dist/server',{recursive:true});await mkdir('dist/.openai',{recursive:true});
 await writeFile('dist/server/index.js',src);await writeFile('dist/.openai/hosting.json',await readFile('.openai/hosting.json'));
-console.log('Built local Everwood site with standalone Zoom Map renderer.');
+const nodeServer=(await readFile('scripts/preview.mjs','utf8')).replace("from '../dist/server/index.js'","from './server/index.js'");
+await writeFile('dist/server.mjs',nodeServer);
+await writeFile('dist/vault-sync.mjs',await readFile('scripts/vault-sync.mjs'));
+await writeFile('dist/image-metadata.mjs',await readFile('scripts/image-metadata.mjs'));
+await writeFile('dist/portrait-thumbnails.mjs',await readFile('scripts/portrait-thumbnails.mjs'));
+await writeFile('dist/package.json',JSON.stringify({name:'everwood',private:true,type:'module',engines:{node:'>=20'},dependencies:JSON.parse(await readFile('package.json','utf8')).dependencies,scripts:{start:'node server.mjs'}},null,2)+'\n');
+const sourceVault=resolve(process.env.VAULT_PATH||fileURLToPath(new URL('../../Obsidian Campaign/',import.meta.url)));
+let snapshot;
+try{snapshot=await createVaultSync(sourceVault).snapshot()}catch(error){if(error.code!=='ENOENT')throw error}
+if(snapshot){
+ const portraitURLs=new Set(snapshot.notes.map(note=>characterPortrait(note,snapshot.assets)).filter(Boolean));
+ for(const asset of snapshot.assets)if(portraitURLs.has(asset.url))await portraitThumbnail(snapshot.files.get(asset.path),resolve('dist/portraits'));
+ const stage=await mkdtemp(resolve('dist/.vault-build-'));
+ const put=async(path,bytes)=>{const target=resolve(stage,path);if(!target.startsWith(stage+sep))throw Error('Invalid vault path');await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes)};
+ for(const note of snapshot.notes)await put(note.path,note.text);
+ for(const [path,file] of snapshot.files)await put(path,await readFile(file.absolute));
+ for(const file of snapshot.zoomData.files)await put(file.path,await readFile(join(sourceVault,file.path)));
+ await put('.obsidian/plugins/zoom-map/data.json',JSON.stringify({icons:snapshot.zoomData.icons,defaultIconKey:snapshot.zoomData.defaultIconKey}));
+ const destination=resolve('dist/vault');
+ if(dirname(destination)!==resolve('dist')||destination===sourceVault)throw Error('Unsafe packaged-vault destination');
+ await rm(destination,{recursive:true,force:true});await rename(stage,destination);
+ console.log('Packaged '+snapshot.notes.length+' notes and '+snapshot.assets.length+' images in dist/vault.');
+}else console.log('No source vault available. Set VAULT_PATH on the server.');
+console.log('Built Everwood. Start with npm start or node dist/server.mjs.');

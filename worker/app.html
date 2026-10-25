@@ -4,13 +4,38 @@
 @media(min-width:1500px){#map{height:650px}.map-layout{min-height:650px}.locations{max-height:465px}}@media(max-width:1100px){.app{grid-template-columns:200px 1fr}.content{padding:28px 24px}.topbar{padding:0 24px}.map-layout{grid-template-columns:minmax(0,1fr) 220px}.map-side-footer{padding:12px}.heading-actions button{font-size:11px}.heading h1{font-size:26px}.sidebar{padding:25px 12px}.cards{gap:10px}}@media(max-width:850px){.app{grid-template-columns:1fr}.sidebar{display:none;position:fixed;z-index:1500;width:240px}.sidebar.open{display:flex}.mobile-menu{display:inline-block}.topbar{height:62px}.content{padding:25px 18px}.heading{align-items:flex-start;flex-direction:column;gap:18px}.heading-actions{align-self:stretch}.heading-actions button{flex:1}.map-layout{grid-template-columns:1fr}.map-side{max-height:260px}.locations{display:flex;overflow:auto}.location{min-width:170px}.map-side-footer{display:none}#map{height:450px}.cards,.note-grid{grid-template-columns:1fr}.card{padding:18px}.search input{width:100px}.tabs{gap:15px}.status{font-size:9px}.footer{gap:15px}.dialog{padding:24px}.map-top{left:12px;top:12px}.map-top b{font-size:14px}}
 .note-image{display:block;max-width:100%;height:auto;margin:18px 0}.note-map-frame{margin:22px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden}.note-map-canvas{width:100%;background:#c9c09f}.note-map-bar{padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:var(--panel);font-size:11px}.note-map-bar button{padding:5px 10px}.note-map-canvas img{max-width:none;border-radius:0}.note-media-error{padding:16px;color:var(--muted);border:1px dashed var(--line)}
 .map-note-panel{margin-top:24px;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:8px}.map-back-control button,.marker-toggle-control button{background:#1c2821;color:var(--text);border:0;border-radius:4px;padding:9px 12px;cursor:pointer}
-.note-page{padding:28px 38px;max-width:1100px}.note-page-actions{margin-top:28px}.marker-custom-image{object-fit:contain}.pin-symbol i{line-height:1}.brand{letter-spacing:2px;font-size:25px}@media(max-width:850px){.note-page{padding:24px 0}}
+.content:has(#noteView:not(.hidden)){max-width:none}.note-page{padding:28px 0;width:100%;max-width:none}.note-page-actions{margin-top:28px}.marker-custom-image{object-fit:contain}.pin-symbol i{line-height:1}.brand{letter-spacing:2px;font-size:25px}@media(max-width:850px){.note-page{padding:24px 0}}
 .pin{width:32px;height:32px;color:#fff;display:grid;place-items:center;box-shadow:0 0 0 1px #0005,0 3px 8px #0005}.pin>span{width:18px;height:18px;display:grid;place-items:center;transform:rotate(45deg)}.pin i,.pin-symbol i{color:#fff!important;font-size:14px!important;line-height:1;width:18px;height:18px;display:flex;align-items:center;justify-content:center}.pin .marker-custom-image,.pin-symbol .marker-custom-image{width:16px!important;height:16px!important;object-fit:contain;filter:brightness(0) invert(1)}.pin-symbol{color:#fff}
+
+/* ITS Theme character notes: Wikipedia infobox and contents. */
+.markdown{display:flow-root}
+.markdown .note-infobox{float:right;clear:right;width:300px;max-width:100%;margin:0 0 24px 28px;border:1px solid var(--line);border-radius:6px;background:var(--panel);overflow:hidden;font-size:12px;line-height:1.6}
+.markdown .note-infobox h1,.markdown .note-infobox h2,.markdown .note-infobox h3{margin:0;padding:6px 10px;text-align:center;background:#ffffff08;font-size:16px;border:0}
+.markdown .note-infobox h1{font-size:22px;padding:10px}
+.markdown .note-infobox p{margin:0;padding:6px 10px;text-align:center}
+.markdown .note-infobox .note-image{display:block;width:auto;max-width:100%;max-height:420px;object-fit:contain;margin:0 auto;border-radius:0}
+.markdown .note-infobox table{margin:4px 0 8px;table-layout:fixed}
+.markdown .note-infobox td,.markdown .note-infobox th{border:0;padding:4px 10px;vertical-align:top;text-align:left;overflow-wrap:anywhere}
+.markdown .note-infobox th:empty{padding:0;height:0}
+.markdown .note-infobox td:first-child{width:43%}
+.markdown .note-contents{display:table;max-width:100%;padding:12px 20px;margin:20px 0;border:1px solid var(--line);border-radius:6px;background:#ffffff04;font-size:13px;line-height:1.8}
+.markdown .note-contents ul{padding-left:20px;margin:6px 0 0}
+.markdown .note-contents a{text-decoration:none}
+.markdown :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:24px}
+.markdown:has(.note-infobox)>h2{border-bottom:1px solid var(--line);overflow:hidden;padding-bottom:5px}
+@media(max-width:850px){.markdown .note-infobox{float:none;clear:both;margin:18px auto 24px;width:300px}.markdown .note-contents{width:auto}}
+.card.has-portrait{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:16px;align-items:center}.card-copy{min-width:0}.card-portrait{display:block;width:96px;height:120px;object-fit:contain;background:#101811;border-radius:5px;margin:0}.card.has-portrait .card-footer{overflow-wrap:anywhere}@media(max-width:420px){.card.has-portrait{grid-template-columns:minmax(0,1fr) 80px;gap:12px}.card-portrait{width:80px;height:100px}}
+.note-tree{margin-top:24px}.note-folder{margin:8px 0;border:1px solid var(--line);border-radius:7px;background:#ffffff02;overflow:hidden}.note-folder>summary{cursor:pointer;display:flex;align-items:center;gap:12px;padding:15px 18px;font-weight:600;list-style:none}.note-folder>summary::-webkit-details-marker{display:none}.note-folder>summary:before{content:'\203A';font-size:22px;line-height:1;transition:transform .15s;color:var(--gold)}.note-folder[open]>summary:before{transform:rotate(90deg)}.note-folder>summary:hover{background:#ffffff06}.folder-icon{width:17px;height:12px;border:1px solid var(--gold);border-radius:2px;position:relative}.folder-icon:before{content:'';position:absolute;left:0;top:-5px;width:8px;height:4px;border:1px solid var(--gold);border-bottom:0;border-radius:2px 2px 0 0}.folder-count{margin-left:auto;font-size:11px;font-weight:400;color:var(--muted)}.folder-children{padding:0 16px 12px 24px;border-top:1px solid var(--line)}.folder-notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;margin-top:12px}.folder-notes .card{width:100%}@media(max-width:850px){.folder-children{padding-left:12px;padding-right:8px}.note-folder>summary{padding:12px;gap:9px}}
+.folder-emoji{font-size:20px;line-height:1;min-width:22px;text-align:center}.card-copy>h3:first-child{margin-top:0}
+#allNotes .card h3{font-size:21px;line-height:1.4}.card-map-preview{object-fit:cover;width:96px;height:120px}@media(max-width:420px){.card-map-preview{width:80px;height:100px}}
+body:not(.status-colors-off) .card.is-dead{filter:grayscale(1);background:#1c1e1d;border-color:#ffffff18}body:not(.status-colors-off) .card.is-dead .card-portrait{opacity:.8}body:not(.status-colors-off) .card.is-dead:hover{background:#272a28;border-color:#ffffff45}
+body:not(.status-colors-off) .card.is-sepia{filter:sepia(.85);background:#28251e;border-color:#b99b6440}.notes-header-controls{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.status-colors-toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;cursor:pointer}.status-colors-toggle input{accent-color:var(--gold)}@media(max-width:600px){.notes-header-controls{gap:10px;justify-content:flex-end}}
+.status-colors-switch{display:flex;align-items:center;gap:9px;border:0;background:none;padding:4px 0 4px 12px;flex-shrink:0}.status-colors-switch:hover{background:none}.switch-label{font-size:11px;color:var(--muted);font-weight:400}.switch-track{display:block;position:relative;width:36px;height:20px;border-radius:12px;background:#59615a;transition:background .18s}.switch-track:after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .18s}.status-colors-switch[aria-checked=true] .switch-track{background:var(--gold)}.status-colors-switch[aria-checked=true] .switch-track:after{transform:translateX(16px)}@media(max-width:500px){.status-colors-switch .switch-label{display:none}.status-colors-switch{padding-left:4px}}
 </style><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"></head><body>
 <div class="app"><aside class="sidebar" id="sidebar"><div class="brand">Everwood</div><div class="eyebrow" style="padding-left:14px">Workspace</div><nav class="nav"><button class="active" data-view="atlas">♧ <span>World atlas</span></button><button data-view="notes">▤ <span>All notes</span><span class="badge" id="noteCount">0</span></button><button data-view="maps">◇ <span>My maps</span><span class="badge" id="mapCount">0</span></button></nav><div class="eyebrow" style="padding-left:14px">Recently opened</div><div class="side-notes" id="sideNotes"></div></aside>
 <main class="main"><header class="topbar"><div class="crumb"><button class="mobile-menu" id="menu" aria-label="Open navigation">☰</button><span>My campaign vault</span><span style="color:#536256">/</span><strong id="breadcrumb">World atlas</strong></div><div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Connecting to your vault…</span></div></header><div class="content"><div class="heading"><div><h1 id="pageTitle">World atlas</h1></div><div class="heading-actions"><button id="backToMaps" class="hidden">← All maps</button></div></div><div class="toolbar"><div class="tabs"><button class="active" data-view="atlas">World atlas</button><button data-view="notes">Notes</button><button data-view="maps">Maps</button></div><label class="search">⌕ <input id="search" placeholder="Search" aria-label="Search notes and locations"></label></div>
 <section id="atlasView"><div class="map-layout"><div class="map-wrap"><div class="map-top"><select id="mapSelect" aria-label="Select a map"></select></div><div id="map" aria-label="Interactive fantasy map"></div><div id="mapError" class="hidden" style="position:absolute;inset:100px 20px auto;z-index:700;background:var(--panel);padding:24px;border-radius:8px"></div></div><aside class="map-side"><div class="side-title">Mapped locations <span id="pinCount"></span></div><div class="locations" id="locations"></div></aside></div><section id="mapNotePanel" class="map-note-panel hidden"><article id="mapNoteText" class="markdown"></article></section><div class="section-head"><h2>Recent notes</h2><button data-view="notes">View all notes &nbsp; ↗</button></div><div class="cards" id="recentCards"></div></section>
-<section id="notesView" class="hidden"><div class="section-head"><h2>Notes</h2><span class="eyebrow" id="notesSummary"></span></div><div class="note-grid" id="allNotes"></div></section><section id="mapsView" class="hidden"><div class="section-head"><h2>Maps</h2></div><div class="note-grid" id="allMaps"></div></section><section id="noteView" class="hidden note-page"><article class="markdown" id="noteBody"></article><div class="note-page-actions"><button id="downloadNote">Download Markdown</button></div></section></div></main></div>
+<section id="notesView" class="hidden"><div class="section-head"><h2>Notes</h2><div class="notes-header-controls"><span class="eyebrow" id="notesSummary"></span></div></div><div class="note-tree" id="allNotes"></div></section><section id="mapsView" class="hidden"><div class="section-head"><h2>Maps</h2></div><div class="note-grid" id="allMaps"></div></section><section id="noteView" class="hidden note-page"><article class="markdown" id="noteBody"></article><div class="note-page-actions"><button id="downloadNote">Download Markdown</button></div></section></div></main></div>
 <div class="toast hidden" id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script><script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 <script>
@@ -35,37 +60,70 @@ function returnToMap(){
 }
 function current(){return state.maps.find(m=>m.id===activeMap)||state.maps[0]}
 async function syncVaultAtlas(){
- const next=await buildVaultAtlas(state,async url=>{const image=new Image();image.src=url;await image.decode();return {width:image.naturalWidth,height:image.naturalHeight}});
+ const next=await buildVaultAtlas(state,async url=>{const image=new Image();image.decoding='async';image.src=url;await image.decode();return {width:image.naturalWidth,height:image.naturalHeight}});
  state.maps=next;
 }
 function openAtlasMap(id,options={}){
  const selected=state.maps.find(m=>m.id===id);if(!selected)return toast('Map is not available yet.');
  if(options.remember!==false&&activeMap!==id&&(view==='atlas'||viewingVaultMap||noteOrigin)){const previous=noteOrigin||captureMapView();if(previous){mapTrail.push(previous);if(mapTrail.length>100)mapTrail.shift()}}
  clearNoteMaps();noteOrigin=null;activeMap=id;
- if(selected.sourceNoteId&&selected.id!==worldAtlasMap(state.maps)?.id){setView('maps');viewingVaultMap=true;$('mapsView').classList.add('hidden');$('atlasView').classList.remove('hidden');$('backToMaps').classList.remove('hidden');$('pageTitle').textContent=selected.name;$('breadcrumb').textContent='My maps / '+selected.name}
+ if(selected.sourceNoteId&&selected.id!==worldAtlasMap(state.maps)?.id){setView('maps');viewingVaultMap=true;$('mapsView').classList.add('hidden');$('atlasView').classList.remove('hidden');$('backToMaps').classList.remove('hidden');$('pageTitle').textContent=displayNoteTitle(selected.name);$('breadcrumb').textContent='My maps / '+displayNoteTitle(selected.name)}
  else setView('atlas',{keepTrail:true});
  document.title=selected.name+' · Everwood';loadMap();if(options.restore?.center&&map)map.setView(options.restore.center,options.restore.zoom);updateReturnButton();setTimeout(()=>map?.invalidateSize(),50);
+}
+function updateNoteCards(id,html){
+ const container=$(id);
+ if(container._cardsHTML===html)return;
+ container._cardsHTML=html;container.innerHTML=html;
 }
 function render(){
  const {notes:regularNotes,mapNotes}=partitionVaultNotes(state.notes);
  $('noteCount').textContent=regularNotes.length;
  $('mapCount').textContent=state.maps.filter(m=>!m.sourceNoteId).length+mapNotes.length;
  const recentNotes=recent.length?recent.map(id=>regularNotes.find(n=>n.id===id)).filter(Boolean):regularNotes.slice(0,5);
- $('sideNotes').innerHTML=recentNotes.map(n=>'<button data-note="'+esc(n.id)+'">▤ &nbsp; '+esc(n.title)+'</button>').join('');
+ $('sideNotes').innerHTML=recentNotes.map(n=>'<button data-note="'+esc(n.id)+'">▤ &nbsp; '+esc(displayNoteTitle(n.title))+'</button>').join('');
  const q=$('search').value.toLowerCase();
  const matches=n=>(n.title+' '+n.text+' '+n.path).toLowerCase().includes(q);
  const notes=regularNotes.filter(matches);
- $('recentCards').innerHTML=notes.slice(0,3).map(noteCard).join('')||'<div class="empty">No notes.</div>';
- $('allNotes').innerHTML=notes.map(noteCard).join('')||'<div class="empty">No matching notes.</div>';
+ updateNoteCards('recentCards',notes.slice(0,3).map(noteCard).join('')||'<div class="empty">No notes.</div>');
+ renderNoteTree(state.notes.filter(matches),q);
  $('notesSummary').textContent=notes.length+' notes';
- $('mapSelect').innerHTML=state.maps.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.name)+'</option>').join('');
+ $('mapSelect').innerHTML=state.maps.map(m=>'<option value="'+esc(m.id)+'">'+esc(displayNoteTitle(m.name))+'</option>').join('');
  $('mapSelect').value=current()?.id||'';
- const vaultMapCards=mapNotes.filter(matches).map(n=>'<button class="card" data-note="'+esc(n.id)+'"><div class="card-label">Zoom Map</div><h3>'+esc(n.title)+'</h3><p>'+esc(n.path)+'</p></button>').join('');
- const atlasMapCards=state.maps.filter(m=>!m.sourceNoteId).filter(m=>m.name.toLowerCase().includes(q)).map(m=>'<button class="card" data-map="'+esc(m.id)+'"><div class="card-label">◇ &nbsp; '+'Fantasy map'+'</div><h3>'+esc(m.name)+'</h3><p>'+m.width+' × '+m.height+' px &nbsp; · &nbsp; '+m.pins.length+' locations</p></button>').join('');
+ const vaultMapCards=mapNotes.filter(matches).map(noteCard).join('');
+ const atlasMapCards=state.maps.filter(m=>!m.sourceNoteId).filter(m=>m.name.toLowerCase().includes(q)).map(m=>'<button class="card" data-map="'+esc(m.id)+'"><div class="card-label">◇ &nbsp; '+'Fantasy map'+'</div><h3>'+esc(displayNoteTitle(m.name))+'</h3><p>'+m.width+' × '+m.height+' px &nbsp; · &nbsp; '+m.pins.length+' locations</p></button>').join('');
  $('allMaps').innerHTML=vaultMapCards+atlasMapCards||'<div class="empty">No maps.</div>';
  renderPins();renderMapNote();
 }
-function noteCard(n){const excerpt=n.text.replace(/^---[\s\S]*?---/,'').replace(/[#>*`\[\]!]/g,'').replace(/\n/g,' ').replace(n.title,'').trim();return '<button class="card" data-note="'+esc(n.id)+'"><div class="card-label">▤ &nbsp; '+esc(n.tag||n.path.split('/').slice(0,-1).join(' / ')||'Note')+'</div><h3>'+esc(n.title)+'</h3><p>'+esc(excerpt)+'</p><div class="card-footer"><span>'+esc(n.path)+'</span><span>↗</span></div></button>'}
+
+const expandedNoteFolders=new Set();
+let statusColorsEnabled=true;
+function folderPresentation(name){
+ const segments=[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(name)].map(s=>s.segment);
+ const isEmoji=s=>/[\p{Extended_Pictographic}\p{Regional_Indicator}\u20e3]/u.test(s);
+ return {emoji:segments.filter(isEmoji).join(''),label:displayNoteTitle(segments.filter(s=>!isEmoji(s)).join('').replace(/\s+/g,' ').trim()||name)};
+}
+function renderNoteTree(notes,query=''){
+ const root=buildNoteTree(notes);
+ const branch=node=>node.folders.map(folder=>{
+  const count=countNotes(folder),presentation=folderPresentation(folder.name);
+  const statusSwitch=/^characters$/i.test(presentation.label)?'<button type="button" class="status-colors-switch" data-status-colors role="switch" aria-checked="'+statusColorsEnabled+'" aria-label="Status colors" title="Status colors"><span class="switch-label">Status colors</span><span class="switch-track" aria-hidden="true"></span></button>':'';
+  return '<details class="note-folder" data-folder="'+esc(folder.path)+'"'+(query||expandedNoteFolders.has(folder.path)?' open':'')+'><summary><span class="'+(presentation.emoji?'folder-emoji':'folder-icon')+'" aria-hidden="true">'+esc(presentation.emoji)+'</span><span>'+esc(presentation.label)+'</span><span class="folder-count">'+count+'</span>'+statusSwitch+'</summary><div class="folder-children">'+branch(folder)+'</div></details>';
+ }).join('')+(node.notes.length?'<div class="folder-notes">'+node.notes.map(noteCard).join('')+'</div>':'');
+ function countNotes(node){return node.notes.length+node.folders.reduce((total,folder)=>total+countNotes(folder),0)}
+ updateNoteCards('allNotes',branch(root)||'<div class="empty">No matching notes.</div>');
+}
+$('allNotes').addEventListener('toggle',event=>{
+ const folder=event.target;if(!folder.matches?.('details[data-folder]')||$('search').value.trim())return;
+ if(folder.open)expandedNoteFolders.add(folder.dataset.folder);else expandedNoteFolders.delete(folder.dataset.folder);
+ // Preserve the native details state when the next render compares markup.
+ $('allNotes')._cardsHTML=$('allNotes').innerHTML;
+},true);
+
+function noteCard(n){
+ const {excerpt,artwork,isMap,dead,sepia}=notePreview(n,state),title=displayNoteTitle(n.title);
+ return '<button class="card'+(artwork?' has-portrait':'')+(isMap?' has-map-preview':'')+(dead?' is-dead':'')+(sepia?' is-sepia':'')+'" data-note="'+esc(n.id)+'"><div class="card-copy"><h3>'+esc(title)+'</h3><p>'+esc(excerpt)+'</p></div>'+(artwork?'<img class="card-portrait'+(isMap?' card-map-preview':'')+'" src="'+esc(artwork)+'" alt="'+(isMap?'Map of ':'Portrait of ')+esc(title)+'" width="96" height="120" loading="lazy" decoding="async" fetchpriority="low">':'')+'</button>';
+}
 function setView(v,options={}){if(v==='atlas'){activeMap=worldAtlasMap(state.maps)?.id;if(!options.keepTrail)mapTrail=[];}document.title='Everwood';clearNoteMaps();view=v;if(v!=='note'){activeNoteId=null;noteOrigin=null;}viewingVaultMap=false;$('backToMaps').classList.add('hidden');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===(v==='note'?'notes':v)));for(const x of ['atlas','notes','maps','note'])$(x+'View').classList.toggle('hidden',x!==v);$('breadcrumb').textContent={atlas:'World atlas',notes:'All notes',maps:'My maps',note:'Notes'}[v];$('pageTitle').textContent={atlas:'World atlas',notes:'Notes',maps:'Maps',note:'Note'}[v];$('sidebar').classList.remove('open');if(v==='atlas'){loadMap();setTimeout(()=>map?.invalidateSize(),50)}render();updateReturnButton()}
 document.addEventListener('click',e=>{const v=e.target.closest('[data-view]'),n=e.target.closest('[data-note]'),m=e.target.closest('[data-map]');if(v)setView(v.dataset.view);if(n)openNote(n.dataset.note);if(m)openAtlasMap(m.dataset.map)});
 function initMap(){map=new ZoomMapRenderer($('map'),{onBack:returnToMap,onPin:showPin,markerHTML:pin=>markerBubble(pin.kind),onError:message=>{$('mapError').textContent=message;$('mapError').classList.remove('hidden')}});loadMap()}
@@ -94,7 +152,7 @@ function showPin(p){
  toast('This pin has no linked note or map.');
 }
 
-function resolveNote(target,base=''){let t=decodeURIComponent(target).split('#')[0].replace(/\.md$/i,'');const folder=base.split('/').slice(0,-1).join('/');return state.notes.find(n=>n.path.replace(/\.md$/i,'')===t)||state.notes.find(n=>n.path.replace(/\.md$/i,'')===(folder?folder+'/':'')+t)||state.notes.find(n=>n.title.toLowerCase()===t.toLowerCase().split('/').pop())}
+function resolveNote(target,base=''){return resolveVaultNote(state.notes,target,base)}
 function asset(target,base=''){return resolveMedia(state.assets,target,base)}
 let noteMaps=[];
 function clearNoteMaps(){for(const entry of noteMaps){entry.observer?.disconnect();entry.map.remove()}noteMaps=[]}
@@ -105,12 +163,13 @@ function noteImage(target,base){
  return '<img class="note-image" src="'+esc(url)+'" alt="'+esc(path)+'"'+(dimensions?' width="'+Math.min(4096,+dimensions[1])+'"'+(dimensions[2]?' height="'+Math.min(4096,+dimensions[2])+'"':''):'')+'>';
 }
 function buildNoteHTML(n,configs=[],omitMaps=false){
- const text=transformNoteMedia(n.text.replace(/%%\s*ZOOMMAP-DATA id=[\s\S]*?\/ZOOMMAP-DATA\s*%%/g,'').replace(/^---\s*\r?\n[\s\S]*?\r?\n---\s*\r?\n/,''),{
+ const text=transformNoteMedia(stripNoteComments(n.text).replace(/^---\s*\r?\n[\s\S]*?\r?\n---\s*\r?\n/,''),{
   image:target=>noteImage(target,n.path),
-  wikilink:value=>{const [target,label]=value.split('|'),found=resolveNote(target,n.path);return '<button class="wikilink" data-'+(found?'note="'+esc(found.id):'missing="'+esc(target))+'">'+esc(label||target)+'</button>'},
+  wikilink:value=>{const [target,label]=value.split('|');if(target.startsWith('#'))return '<a class="wikilink" href="#'+noteHeadingId(target.slice(1))+'">'+esc(label||target.slice(1))+'</a>';const found=resolveNote(target,n.path);return '<button class="wikilink" data-'+(found?'note="'+esc(found.id):'missing="'+esc(target))+'">'+esc(label||target)+'</button>'},
   map:config=>{if(omitMaps)return '';const index=configs.push(config)-1;return '\n<div class="note-map-frame" data-inline-map="'+index+'"></div>\n'}
  });
  const renderer=window.marked?new marked.Renderer():null;
+ if(renderer)configureNoteLayout(renderer,marked);
  if(renderer)renderer.image=({href,text,title})=>{
   const url=mediaURL(state.assets,href,n.path);
   return url?'<img class="note-image" src="'+esc(url)+'" alt="'+esc(text)+'"'+(title?' title="'+esc(title)+'"':'')+'>':'<span class="note-media-error">Missing attachment: '+esc(href)+'</span>';
@@ -119,7 +178,7 @@ function buildNoteHTML(n,configs=[],omitMaps=false){
 }
 function wireNoteContent(container,n,configs=[]){
  container.querySelectorAll('img').forEach(img=>{const url=mediaURL(state.assets,img.getAttribute('src'),n.path);if(url)img.src=url;else{img.removeAttribute('src');img.alt='Attachment not imported'}img.addEventListener('error',()=>{img.alt='Could not load image: '+img.alt},{once:true})});
- container.querySelectorAll('a').forEach(a=>{const href=a.getAttribute('href')||'';if(!/^(https?:|mailto:|#)/i.test(href))a.onclick=e=>{e.preventDefault();const found=resolveNote(href,n.path);found?openNote(found.id):toast('Linked note not found: '+href)};else{a.target='_blank';a.rel='noopener noreferrer'}});
+ container.querySelectorAll('a').forEach(a=>{const href=a.getAttribute('href')||'';if(href.startsWith('#'))a.onclick=e=>{e.preventDefault();const target=Array.from(container.querySelectorAll('[id]')).find(el=>el.id===href.slice(1)||el.id===noteHeadingId(href.slice(1)));target?.scrollIntoView({behavior:'smooth',block:'start'})};else if(!/^(https?:|mailto:)/i.test(href))a.onclick=e=>{e.preventDefault();const found=resolveNote(href,n.path);found?openNote(found.id):toast('Linked note not found: '+href)};else{a.target='_blank';a.rel='noopener noreferrer'}});
  container.querySelectorAll('[data-inline-map]').forEach(frame=>mountNoteMap(frame,configs[+frame.dataset.inlineMap],n));
 }
 let mapNoteKey='';
@@ -138,16 +197,17 @@ function openNote(id){
  clearNoteMaps();noteOrigin=origin;setView('note');activeNoteId=id;
  recent=[id,...recent.filter(x=>x!==id)].slice(0,6);
  const configs=[];$('noteBody').innerHTML=buildNoteHTML(n,configs);$('noteBody').dataset.noteId=id;
- $('pageTitle').textContent=n.title;$('breadcrumb').textContent='Notes / '+n.title;
- document.title=n.title+' · Everwood';wireNoteContent($('noteBody'),n,configs);
+ $('pageTitle').textContent=displayNoteTitle(n.title);$('breadcrumb').textContent='Notes / '+displayNoteTitle(n.title);
+ document.title=displayNoteTitle(n.title)+' · Everwood';wireNoteContent($('noteBody'),n,configs);
  $('downloadNote').onclick=()=>download(n.title+'.md',n.text,'text/markdown');render();window.scrollTo({top:0});
 }
 
 async function mountNoteMap(frame,config,note){
  try{
   const url=mediaURL(state.assets,config.image,note.path);if(!url)throw Error('Map image not found: '+config.image);
-  const image=new Image();image.src=url;await image.decode();if(!frame.isConnected||frame.closest('.hidden'))return;
-  const dimensions={width:image.naturalWidth,height:image.naturalHeight},data=zoomMapData(state,config,note);
+  const artwork=resolveMedia(state.assets,config.image,note.path);let dimensions;
+  if(artwork?.width>0&&artwork?.height>0)dimensions=artwork;else{const image=new Image();image.decoding='async';image.src=url;await image.decode();dimensions={width:image.naturalWidth,height:image.naturalHeight}}
+  if(!frame.isConnected||frame.closest('.hidden'))return;const data=zoomMapData(state,config,note);
   const descriptor={...dimensions,url,minZoom:config.minZoom,maxZoom:config.maxZoom,imageRendering:config.imageRendering,responsive:config.responsive,panClamp:data?.panClamp!==false,pins:savedZoomPins(state,config,note,dimensions),overlays:[]};
   frame.style.height=config.height+'px';const renderer=new ZoomMapRenderer(frame,{onBack:returnToMap,onPin:showPin,markerHTML:pin=>markerBubble(pin.kind)});renderer.setMap(descriptor);renderer.setBackAvailable(!!noteOrigin||mapTrail.length>0);noteMaps.push({map:renderer});
  }catch(error){if(frame.isConnected)frame.innerHTML='<div class="note-media-error">'+esc(error.message)+'</div>'}
@@ -172,7 +232,7 @@ async function refreshLocalVault(){
    // Keep maps and in-progress pin forms owned by this browser.
    state.notes=fresh.notes;state.assets=fresh.assets;state.zoomData=fresh.zoomData;
    await syncVaultAtlas();state.localRevision=fresh.localRevision;
-   if(viewingVaultMap){if(state.maps.some(m=>m.id===activeMap))loadMap();else setView('maps')}
+   if(viewingVaultMap||view==='atlas'){if(state.maps.some(m=>m.id===activeMap))loadMap();else setView('maps')}
    render();
    if(openId){if(state.notes.some(n=>n.id===openId))openNote(openId);else{setView('notes');toast('This note was removed or renamed in Obsidian.')}}
   }
@@ -183,7 +243,40 @@ async function refreshLocalVault(){
 setInterval(refreshLocalVault,2000);
 window.addEventListener('focus',refreshLocalVault);
 
-(async()=>{try{const r=await api('/api/state');state=await r.json();loaded=true;if(!state){state=emptyState();await save()}storageOK=true;$('statusText').textContent='All changes saved'}catch(e){state=emptyState();$('statusText').textContent='Vault storage offline';$('statusDot').style.background='#d3b77a';toast(e.message)}removeSampleContent(state);state.assets??=[];await syncVaultAtlas();activeMap=worldAtlasMap(state.maps)?.id;render();initMap();setView('atlas');if(state.hosted)$('statusText').textContent='Everwood';refreshLocalVault()})();
+function applyStatusColors(enabled){
+ statusColorsEnabled=enabled;
+ document.body.classList.toggle('status-colors-off',!enabled);
+ document.querySelectorAll('[data-status-colors]').forEach(button=>button.setAttribute('aria-checked',String(enabled)));
+ try{localStorage.setItem('atlas-status-colors',String(enabled))}catch{}
+}
+let savedStatusColors=true;
+try{savedStatusColors=localStorage.getItem('atlas-status-colors')!=='false'}catch{}
+applyStatusColors(savedStatusColors);
+document.addEventListener('click',event=>{
+ const button=event.target.closest('[data-status-colors]');if(!button)return;
+ event.preventDefault();event.stopPropagation();applyStatusColors(!statusColorsEnabled);
+},true);
+// Synchronize note navigation with shareable URLs after the vault has loaded.
+let routingReady=false,restoringRoute=false,navigationDepth=0;
+function writeRoute(path){if(routingReady&&!restoringRoute&&location.pathname!==path)history.pushState(null,'',path)}
+const originalSetView=setView,originalOpenNote=openNote,originalOpenAtlasMap=openAtlasMap;
+setView=function(v,options={}){navigationDepth++;try{return originalSetView(v,options)}finally{navigationDepth--;if(!navigationDepth&&v!=='note')writeRoute(v==='atlas'?'/':v==='maps'?'/maps':'/notes')}};
+openNote=function(id){navigationDepth++;try{return originalOpenNote(id)}finally{navigationDepth--;const note=state.notes.find(n=>n.id===id);if(!navigationDepth&&note)writeRoute(noteURL(note,state.notes))}};
+openAtlasMap=function(id,options={}){navigationDepth++;try{return originalOpenAtlasMap(id,options)}finally{navigationDepth--;if(!navigationDepth){const m=state.maps.find(m=>m.id===id),n=state.notes.find(n=>n.id===m?.sourceNoteId);if(n)writeRoute(noteURL(n,state.notes));else if(m)writeRoute('/')}}};
+function restoreRoute(){
+ if(!routingReady)return;
+ restoringRoute=true;
+ try{
+  if(location.pathname.startsWith('/notes/')){
+   const note=routeNote(state.notes,location.pathname);
+   if(note)openNote(note.id);
+   else{setView('note');$('pageTitle').textContent='Note not found';$('breadcrumb').textContent='Notes';$('noteBody').textContent='This note does not exist or has been renamed.';$('downloadNote').onclick=null;}
+  }else setView(location.pathname==='/notes'?'notes':location.pathname==='/maps'?'maps':'atlas');
+ }finally{restoringRoute=false}
+}
+window.addEventListener('popstate',restoreRoute);
+
+(async()=>{try{const r=await api('/api/state');state=await r.json();loaded=true;if(!state){state=emptyState();await save()}storageOK=true;$('statusText').textContent='All changes saved'}catch(e){state=emptyState();$('statusText').textContent='Vault storage offline';$('statusDot').style.background='#d3b77a';toast(e.message)}removeSampleContent(state);state.assets??=[];await syncVaultAtlas();activeMap=worldAtlasMap(state.maps)?.id;render();initMap();routingReady=true;restoreRoute();if(state.hosted)$('statusText').textContent='Everwood';refreshLocalVault()})();
 </script></body></html>
 
 

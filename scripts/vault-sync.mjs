@@ -1,6 +1,7 @@
 import {readdir, readFile, stat, lstat} from 'node:fs/promises';
 import {resolve, join} from 'node:path';
 import {createHash} from 'node:crypto';
+import {imageDimensions} from './image-metadata.mjs';
 const hash = value => createHash('sha256').update(value).digest('hex');
 const types = {'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif'};
 const noteHeading=text=>text.replace(/^[ \t]*(`{3,}|~{3,})[^\r\n]*\r?\n[\s\S]*?^[ \t]*\1[ \t]*(?=\r?$)/gm,'').match(/^#\s+(.+)$/m)?.[1];
@@ -8,7 +9,7 @@ const noteHeading=text=>text.replace(/^[ \t]*(`{3,}|~{3,})[^\r\n]*\r?\n[\s\S]*?^
 // Read only: Obsidian remains the source of truth. Never follow symlinks.
 export function createVaultSync(root) {
   root = resolve(root);
-  let cache = new Map(), pending;
+  let cache = new Map(), pending,latest,updatedAt=0;
   async function scan() {
     if (!(await lstat(root)).isDirectory()) throw Error('Obsidian Campaign folder is unavailable.');
     const notes = [], assets = [], files = new Map(), nextCache = new Map(),zoomFiles=[];
@@ -18,7 +19,7 @@ export function createVaultSync(root) {
       for (const entry of entries) {
         if (entry.name.startsWith('.') || entry.name === '__MACOSX' || entry.isSymbolicLink()) continue;
         const path = prefix + entry.name, absolute = join(directory, entry.name);
-        if (entry.isDirectory()) { await walk(absolute, path + '/'); continue; }
+        if (entry.isDirectory()) { if(!/^ZoomMap\/SVGs(?:\/|$)/i.test(path))await walk(absolute, path + '/'); continue; }
         if (!entry.isFile()) continue;
         const extension = path.match(/\.[^.]+$/)?.[0].toLowerCase();
         const markerFile=/\.markers\.json$/i.test(path);
@@ -29,17 +30,17 @@ export function createVaultSync(root) {
         else {
           if (info.size > 20 * 1024 * 1024) throw Error('Vault file exceeds 20 MB: ' + path);
           const bytes = await readFile(absolute);
-          item = {mtime:info.mtimeMs, ctime:info.ctimeMs, size:info.size, digest:hash(bytes)};
+          item = {mtime:info.mtimeMs, ctime:info.ctimeMs, size:info.size, digest:hash(bytes),dimensions:markerFile?null:imageDimensions(bytes)};
           if (markerFile||extension === '.md' || extension === '.markdown') item.text = bytes.toString('utf8');
         }
         nextCache.set(path, item);
-        if(markerFile){const data=JSON.parse(item.text);zoomFiles.push({path,markers:Array.isArray(data.markers)?data.markers:[],layers:Array.isArray(data.layers)?data.layers:[],size:data.size});}
+        if(markerFile){const data=JSON.parse(item.text);zoomFiles.push({path,markers:Array.isArray(data.markers)?data.markers:[],layers:Array.isArray(data.layers)?data.layers:[],size:data.size,activeBase:data.activeBase,overlays:data.overlays,panClamp:data.panClamp});}
         else if (item.text !== undefined) notes.push({id:'local-' + hash(path).slice(0,24), path,
           title:noteHeading(item.text) || entry.name.replace(/\.(md|markdown)$/i,''),
           text:item.text, tag:prefix.replace(/\/$/,'') || 'Note'});
         else {
           const url = '/local/file/' + path.split('/').map(encodeURIComponent).join('/') + '?v=' + item.digest;
-          assets.push({path, url, type:types[extension]});files.set(path, {absolute, type:types[extension]});
+          assets.push({path,url,thumbnailUrl:url+'&thumbnail=portrait',type:types[extension],...item.dimensions});files.set(path,{absolute,type:types[extension],digest:item.digest,mtime:item.mtime,size:item.size});
         }
       }
     }
@@ -57,8 +58,9 @@ export function createVaultSync(root) {
     cache = nextCache;
     return {notes, assets, files,zoomData, revision:hash(JSON.stringify([[...cache].map(([path,item])=>[path,item.digest]),zoomData]))};
   }
-  return {snapshot() {
-    if (!pending) pending = scan().finally(()=>{pending = undefined});
+  return {snapshot({maxAgeMs=0}={}) {
+    if(latest&&maxAgeMs>0&&Date.now()-updatedAt<maxAgeMs)return Promise.resolve(latest);
+    if (!pending) pending = scan().then(snapshot=>{latest=snapshot;updatedAt=Date.now();return snapshot}).finally(()=>{pending = undefined});
     return pending;
   }};
 }

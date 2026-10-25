@@ -23,7 +23,7 @@ export default {
     }
     return json({error:'Method not allowed'},405);
    }
-   if(path==='/' || path==='/index.html') return new Response(HTML,{headers:{'Content-Type':'text/html; charset=utf-8','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'}});
+   if(path==='/' || path==='/index.html' || path==='/notes' || path==='/maps' || path.startsWith('/notes/')) return new Response(HTML,{headers:{'Content-Type':'text/html; charset=utf-8','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'}});
    return new Response('Not found',{status:404});
   }catch(e){return json({error:'Could not access vault storage. Please try again.'},500)}
  }

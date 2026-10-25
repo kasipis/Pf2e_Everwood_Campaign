@@ -2,11 +2,11 @@ import {test} from 'node:test';import assert from 'node:assert/strict';
 import {ZoomMapRenderer,zoomAround,fitImage,screenPoint} from '../worker/zoom-map-renderer.js';
 class Element{
  constructor(tag='div'){this.tagName=tag;this.children=[];this.style={};this.attrs={};this.events=new Map();this.clientWidth=800;this.clientHeight=500;this.classes=new Set();this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c)};}
- appendChild(child){child.parent=this;this.children.push(child);return child}replaceChildren(){this.children=[]}setAttribute(k,v){this.attrs[k]=v}removeAttribute(k){delete this.attrs[k]}
+ appendChild(child){child.parent=this;this.children.push(child);return child}replaceChildren(){this.children=[]}setAttribute(k,v){this.attrs[k]=v}getAttribute(k){return k==='src'?this.src:this.attrs[k]}removeAttribute(k){delete this.attrs[k]}
  addEventListener(k,f){if(!this.events.has(k))this.events.set(k,new Set());this.events.get(k).add(f)}removeEventListener(k,f){this.events.get(k)?.delete(f)}
  emit(k,event){for(const fn of this.events.get(k)||[])fn({...event,target:event.target||this,preventDefault(){},stopPropagation(){}})}
  closest(selector){let node=this;while(node){if(selector==='button'&&node.tagName==='button')return node;node=node.parent}return null}
- querySelectorAll(selector){return this.children.filter(c=>selector==='.'+c.className)}remove(){this.parent.children=this.parent.children.filter(c=>c!==this)}
+ querySelectorAll(selector){return this.children.filter(c=>(c.className||'').split(' ').includes(selector.slice(1)))}remove(){this.parent.children=this.parent.children.filter(c=>c!==this)}
  getBoundingClientRect(){return {left:0,top:0}}setPointerCapture(){}
 }
 function setup(options={}){globalThis.document={createElement:tag=>new Element(tag)};const container=new Element();const renderer=new ZoomMapRenderer(container,options);renderer.setMap({width:1600,height:1000,url:'map.webp',pins:[{id:'guild',name:'Guild',x:400,y:300}],minZoom:0.2,maxZoom:8,panClamp:false});return {container,renderer}}
@@ -37,4 +37,37 @@ test('view snapshots survive map switches and resize; disposed viewers remove li
 test('responsive maps stay fitted and ignore interactive zoom; overlays stay in the image scene',()=>{
  const {renderer:r,container}=setup();r.setMap({width:1600,height:1000,url:'map.webp',responsive:true,overlays:[{url:'roads.png'},{url:'hidden.png',visible:false}],pins:[]});
  assert.equal(r.scene.children.length,2);const scale=r.getZoom();r.zoomBy(2);assert.equal(r.getZoom(),scale);container.clientWidth=400;r.invalidateSize();assert.equal(r.getZoom(),0.25);r.remove();
+});
+
+test('refresh reuses image and marker elements, but updates marker styles when settings change',()=>{
+ let color='red';const {renderer:r}=setup({markerHTML:()=>color});
+ const image=r.image,pin=r.pinElements[0].element;const descriptor={...r.data};
+ r.setMap(descriptor,{preserve:true});assert.equal(r.image,image);assert.equal(r.pinElements[0].element,pin);
+ color='blue';r.setMap({...descriptor,markerStyleKey:'updated'},{preserve:true});assert.notEqual(r.pinElements[0].element,pin);assert.equal(r.pinElements[0].element.innerHTML,'blue');r.remove();
+});
+
+test('loading screen follows the newest map decode and ignores stale map completion',async()=>{
+ const {renderer:r,container}=setup();const pending=[];r.image.decode=()=>new Promise(resolve=>pending.push(resolve));
+ r.setMap({...r.data,url:'b.webp',name:'Town'});const previous=r.loadPromise;
+ assert.equal(r.loading.hidden,false);assert.equal(r.loadingText.textContent,'Loading Town…');assert.equal(container.attrs['aria-busy'],'true');
+ r.setMap({...r.data},{preserve:true});assert.equal(pending.length,1);
+ r.setMap({...r.data,url:'c.webp',name:'World'});const current=r.loadPromise;
+ pending[0]();await previous;assert.equal(r.loading.hidden,false);assert.equal(r.loadingText.textContent,'Loading World…');
+ pending[1]();await current;assert.equal(r.loading.hidden,true);assert.equal(container.attrs['aria-busy'],'false');r.remove();
+});
+test('loading screen waits for visible overlays as well as the map image',async()=>{
+ const {renderer:r}=setup();r.image.decode=async()=>{};
+ r.setMap({...r.data,url:'world.webp',overlays:[{url:'roads.webp'}]});assert.equal(r.loading.hidden,false);
+ await Promise.resolve();assert.equal(r.loading.hidden,false);
+ r.scene.querySelectorAll('.zm-overlay')[0].emit('load',{});await r.loadPromise;assert.equal(r.loading.hidden,true);r.remove();
+});
+test('failed image loads replace the spinner with an error and can be retried',async()=>{
+ let errors=0;const {renderer:r}=setup({onError:()=>errors++});r.image.decode=async()=>{throw Error('network failure')};
+ r.setMap({...r.data,url:'failed.webp'});await r.loadPromise;assert.equal(r.loading.hidden,false);assert.equal(r.spinner.hidden,true);assert.match(r.loadingText.textContent,/Could not load/);assert.equal(errors,1);
+ r.image.decode=async()=>{};r.setMap({...r.data});await r.loadPromise;assert.equal(r.loading.hidden,true);r.remove();
+});
+test('clearing a loading map cancels its visible state and ignores later completion',async()=>{
+ const {renderer:r,container}=setup();let resolve;r.image.decode=()=>new Promise(done=>{resolve=done});
+ r.setMap({...r.data,url:'slow.webp'});const pending=r.loadPromise;r.clear();assert.equal(r.loading.hidden,true);assert.equal(container.attrs['aria-busy'],'false');
+ resolve();await pending;assert.equal(r.ready,false);assert.equal(r.data,null);r.remove();
 });

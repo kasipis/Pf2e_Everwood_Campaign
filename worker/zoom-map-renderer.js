@@ -11,11 +11,14 @@ export function fitImage(width,height,viewportWidth,viewportHeight){
 export function screenPoint(view,point){return {x:view.tx+point.x*view.scale,y:view.ty+point.y*view.scale}}
 export class ZoomMapRenderer{
  constructor(container,options={}){
-  this.container=container;this.options=options;this.view={scale:1,tx:0,ty:0};this.pointers=new Map();this.listeners=[];this.pins=[];this.markersVisible=true;this.destroyed=false;
+  this.container=container;this.options=options;this.view={scale:1,tx:0,ty:0};this.pointers=new Map();this.listeners=[];this.pins=[];this.markersVisible=true;this.destroyed=false;this.loadGeneration=0;this.ready=false;
   container.replaceChildren();container.classList.add('zm-viewport');container.tabIndex=0;container.setAttribute('aria-label',options.label||'Interactive map');
   const make=(tag,classes,parent)=>{const element=document.createElement(tag);element.className=classes;parent.appendChild(element);return element};
-  this.scene=make('div','zm-scene',container);this.image=make('img','zm-image',this.scene);this.image.alt='';this.image.draggable=false;
+  this.scene=make('div','zm-scene',container);this.image=make('img','zm-image',this.scene);this.image.alt='';this.image.draggable=false;this.image.decoding='async';this.image.fetchPriority='high';
   this.markerLayer=make('div','zm-markers',container);
+  this.loading=make('div','zm-loading-screen',container);this.loading.hidden=true;this.loading.setAttribute('role','status');this.loading.setAttribute('aria-live','polite');
+  this.spinner=make('span','zm-loading-spinner',this.loading);this.spinner.setAttribute('aria-hidden','true');this.loadingText=make('span','zm-loading-text',this.loading);
+  for(const event of ['pointerdown','wheel','dblclick'])this.listen(this.loading,event,e=>e.stopPropagation());
   const controls=make('div','zm-controls',container);
   this.toggle=this.button(controls,'Hide markers',()=>this.setMarkersVisible(!this.markersVisible));this.toggle.setAttribute('aria-pressed','false');
   const zoom=make('div','zm-zoom',controls);this.button(zoom,'+',()=>this.zoomBy(1.25),'Zoom in');this.button(zoom,'−',()=>this.zoomBy(0.8),'Zoom out');
@@ -31,7 +34,6 @@ export class ZoomMapRenderer{
    if(event.key==='+'||event.key==='=')this.zoomBy(1.25);else if(event.key==='-')this.zoomBy(0.8);
    else{this.view.tx+=event.key==='ArrowLeft'?40:event.key==='ArrowRight'?-40:0;this.view.ty+=event.key==='ArrowUp'?40:event.key==='ArrowDown'?-40:0;this.draw()}
   });
-  this.listen(this.image,'error',()=>options.onError?.('Could not load the map image.'));
   if(typeof ResizeObserver!=='undefined'){this.observer=new ResizeObserver(()=>this.invalidateSize());this.observer.observe(container)}
  }
  button(parent,text,action,label=text){const button=document.createElement('button');button.type='button';button.textContent=text;button.setAttribute('aria-label',label);button.onclick=event=>{event.stopPropagation();action()};parent.appendChild(button);return button}
@@ -56,19 +58,44 @@ export class ZoomMapRenderer{
  clampScale(scale){return Math.max(this.minScale||0.000001,Math.min(this.maxScale||8,scale))}
  zoomAt(point,factor){if(!this.data||this.data.responsive)return;this.view=zoomAround(this.view,point,this.clampScale(this.view.scale*factor));this.draw()}
  zoomBy(factor){this.zoomAt({x:this.container.clientWidth/2,y:this.container.clientHeight/2},factor)}
+ showLoading(name){this.loading.hidden=false;this.spinner.hidden=false;this.loadingText.textContent=name?'Loading '+name+'…':'Loading map…';this.container.setAttribute('aria-busy','true')}
+ hideLoading(){this.loading.hidden=true;this.container.setAttribute('aria-busy','false')}
+ imageReady(image){
+  if(typeof image.decode==='function')return image.decode();
+  if(image.complete)return image.naturalWidth>0?Promise.resolve():Promise.reject(Error('Could not load the map image.'));
+  return new Promise((resolve,reject)=>{
+   const cleanup=()=>{image.removeEventListener('load',loaded);image.removeEventListener('error',failed)};
+   const loaded=()=>{cleanup();resolve()};const failed=()=>{cleanup();reject(Error('Could not load the map image.'))};
+   image.addEventListener('load',loaded,{once:true});image.addEventListener('error',failed,{once:true});
+  });
+ }
+ waitForMap(){
+  const generation=++this.loadGeneration;this.ready=false;this.loadFailed=false;this.showLoading(this.data?.name);
+  this.loadPromise=Promise.all([this.image,...this.scene.querySelectorAll('.zm-overlay')].map(image=>this.imageReady(image))).then(()=>new Promise(resolve=>{
+   const paint=()=>{if(!this.destroyed&&generation===this.loadGeneration){this.ready=true;this.hideLoading()}resolve()};
+   if(typeof requestAnimationFrame==='function')requestAnimationFrame(paint);else paint();
+  })).catch(()=>{if(!this.destroyed&&generation===this.loadGeneration){this.loadFailed=true;this.spinner.hidden=true;this.loadingText.textContent='Could not load the map. Try opening it again.';this.container.setAttribute('aria-busy','false');this.options.onError?.('Could not load the map image.')}});
+ }
  setMap(data,{preserve=false}={}){
   const previous=preserve&&this.data?this.getView():null;
-  this.data=data;this.image.src=data.url;this.image.style.width=data.width+'px';this.image.style.height=data.height+'px';this.image.style.imageRendering=data.imageRendering||'auto';
+  if(this.data?.markerStyleKey!==data.markerStyleKey)this.pinSignature=null;
+  const sourceChanged=this.image.getAttribute('src')!==data.url||this.loadFailed;
+  this.data=data;if(sourceChanged)this.image.src=data.url;this.image.style.width=data.width+'px';this.image.style.height=data.height+'px';this.image.style.imageRendering=data.imageRendering||'auto';
+  const overlaySignature=JSON.stringify([data.width,data.height,data.overlays]);
+  const overlaysChanged=overlaySignature!==this.overlaySignature||this.loadFailed;
+  if(overlaysChanged){this.overlaySignature=overlaySignature;
   for(const overlay of this.scene.querySelectorAll('.zm-overlay'))overlay.remove();
   for(const overlay of data.overlays||[]){if(overlay.visible===false)continue;const img=document.createElement('img');img.className='zm-image zm-overlay';img.alt='';img.draggable=false;img.src=overlay.url;img.style.width=data.width+'px';img.style.height=data.height+'px';this.scene.appendChild(img)}
+  }
   const fit=fitImage(data.width,data.height,this.container.clientWidth||800,this.container.clientHeight||500);
   this.minScale=Math.min(Number(data.minZoom)||0.2,fit.scale);this.maxScale=Math.max(Number(data.maxZoom)||8,fit.scale);
   if(previous)this.setView(previous.center,previous.zoom);else this.view=fit;
   this.setPins(data.pins||[]);this.draw();
+  if(sourceChanged||overlaysChanged||!this.loadPromise)this.waitForMap();
  }
- clear(){this.data=null;this.image.removeAttribute('src');this.markerLayer.replaceChildren();this.pins=[]}
+ clear(){this.loadGeneration++;this.loadPromise=null;this.ready=false;this.hideLoading();this.data=null;this.overlaySignature=null;for(const overlay of this.scene.querySelectorAll('.zm-overlay'))overlay.remove();this.image.removeAttribute('src');this.markerLayer.replaceChildren();this.pins=[];this.pinSignature=null}
  setPins(pins){
-  this.pins=pins;this.markerLayer.replaceChildren();this.pinElements=[];
+  const signature=JSON.stringify(pins);if(signature===this.pinSignature)return;this.pinSignature=signature;this.pins=pins;this.markerLayer.replaceChildren();this.pinElements=[];
   for(const pin of pins){const button=this.button(this.markerLayer,'',()=>this.options.onPin?.(pin),pin.name||'Location');button.className='zm-marker';button.title=pin.description?pin.name+' — '+pin.description:pin.name;
    button.innerHTML=this.options.markerHTML?.(pin)||'<span class="zm-default-pin"></span>';
    if(this.options.onPinContext)button.oncontextmenu=event=>{event.preventDefault();this.options.onPinContext(pin)};
@@ -95,5 +122,5 @@ export class ZoomMapRenderer{
   for(const {pin,element} of this.pinElements||[]){const point=screenPoint(this.view,pin);element.style.left=point.x+'px';element.style.top=point.y+'px';element.hidden=(pin.minZoom!=null&&this.view.scale<pin.minZoom)||(pin.maxZoom!=null&&this.view.scale>pin.maxZoom)}
   this.lastSize={width,height};
  }
- remove(){this.destroyed=true;this.observer?.disconnect();for(const dispose of this.listeners)dispose();this.container.replaceChildren();this.container.classList.remove('zm-viewport')}
+ remove(){this.loadGeneration++;this.hideLoading();this.destroyed=true;this.observer?.disconnect();for(const dispose of this.listeners)dispose();this.container.replaceChildren();this.container.classList.remove('zm-viewport')}
 }

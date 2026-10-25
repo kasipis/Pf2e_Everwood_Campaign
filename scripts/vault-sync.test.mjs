@@ -16,7 +16,7 @@ test('vault detects nested notes, edits, image replacements, renames and deletio
   await writeFile(join(root,'map.png'),'image one');
   const sync=createVaultSync(root),first=await sync.snapshot();
   assert.equal(first.notes.length,1);assert.equal(first.notes[0].path,'Sessions/One.md');
-  assert.equal(first.assets.length,1);
+  assert.equal(first.assets.length,1);assert.equal(await sync.snapshot({maxAgeMs:2000}),first);
   await writeFile(join(root,'Commented map.md'),'```zoommap\nimage: map.png\n# Map view limits\nminZoom: 0.2\n```');
   const commented=await sync.snapshot();assert.equal(commented.notes.find(n=>n.path==='Commented map.md').title,'Commented map');
   await unlink(join(root,'Commented map.md'));

@@ -4,7 +4,7 @@ Work locally only. Do not publish or redeploy unless the user explicitly request
 
 ## Start
 
-Requires Node.js 20+. Run `Start-Atlas.cmd` or `npm run dev`, then open
+Requires Node.js 20+. Run `npm install` once to install image processing dependencies. Run `Start-Atlas.cmd` or `npm run dev`, then open
 http://localhost:4173. Keep the server running. Restart it and reload the browser
 after changes to the site code.
 
@@ -55,3 +55,68 @@ from their CDNs; the map renderer itself has no external dependencies.
 
 The previously deployed website is unchanged. The saved hosting identity is kept
 for reference; local builds do not push or deploy anything.
+
+## Node deployment
+
+Build command: `npm run build`
+Start command: `npm start`
+
+The build produces a portable `dist/` folder containing the Node server, site,
+and a snapshot of the current vault. Deploy that folder on a Node.js 20+ host,
+then run `npm start` from inside it, or `node server.mjs`. No dependency install
+is required for the built folder. The root project also supports `npm start`,
+which runs `node dist/server.mjs` after a build. `Procfile` declares that command
+for platforms that use it. This configuration does not publish to the old site.
+
+Example from the source project:
+
+```powershell
+npm run build
+npm start -- --host 0.0.0.0 --port 3000
+```
+
+Example after deploying the contents of `dist/`:
+
+```text
+node server.mjs --host 0.0.0.0 --port 3000
+```
+
+The server prints its actual bound host and port, a local URL, available IPv4
+network URLs when listening on all interfaces, and the vault folder in use.
+It also provides `GET /healthz` for deployment health checks.
+
+| Setting | Meaning |
+| --- | --- |
+| `HOST` / `--host` | Bind address. Defaults to `127.0.0.1` locally, or `0.0.0.0` when a hosting provider supplies `PORT` or `NODE_ENV=production`. |
+| `PORT` / `--port` | Listening port; defaults to `4173`. |
+| `PUBLIC_URL` / `--public-url` | External HTTP(S) origin behind a reverse proxy, such as `https://maps.example.com`. |
+| `VAULT_PATH` / `--vault` | Read a live mounted vault instead of the packaged snapshot. |
+| `DATA_PATH` | Folder for server-side data; defaults to `.preview-data` next to the build. |
+
+The local development server reads the original adjacent Obsidian vault. The
+portable Node server uses `dist/vault` by default. To refresh its snapshot,
+rebuild and redeploy; for continuous updates, mount or sync the vault on the
+server and set `VAULT_PATH` to that folder.
+
+The Node server has no sign-in layer. For private remote access, configure
+access control in your hosting platform or reverse proxy. `PUBLIC_URL` restricts
+accepted hostnames and origins; it does not authenticate visitors.
+
+## Map loading performance
+
+The vault index includes PNG, JPEG, GIF and WebP dimensions read from their headers.
+Map startup no longer downloads or decodes every map to discover its size. Only
+images for the displayed map and its visible overlays are requested. Repeated
+renders reuse the displayed image, overlays and unchanged marker elements.
+
+Image URLs contain a content hash. Matching versions use private browser caching;
+unversioned requests use ETag revalidation. Replacing an image generates a new URL,
+and an old version URL never receives immutable caching for different content.
+Image requests reuse the recent vault index rather than scanning the vault for
+every asset. The unrelated Zoom Map SVG library folder is excluded from indexing.
+
+On the current vault, the map index builds all 11 maps from metadata with zero
+upfront browser image loads, replacing the previous 11 sequential image loads.
+This is a request-count check, not a measured end-to-end browser speedup.
+
+Character overview portraits use cached 320px WebP thumbnails, generated during builds and refreshed when vault images change. Full note portraits use their original images. If deploying only dist/, run npm install --omit=dev there before starting the server.
