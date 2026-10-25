@@ -31,11 +31,47 @@
 body:not(.status-colors-off) .card.is-dead{filter:grayscale(1);background:#1c1e1d;border-color:#ffffff18}body:not(.status-colors-off) .card.is-dead .card-portrait{opacity:.8}body:not(.status-colors-off) .card.is-dead:hover{background:#272a28;border-color:#ffffff45}
 body:not(.status-colors-off) .card.is-sepia{filter:sepia(.85);background:#28251e;border-color:#b99b6440}.notes-header-controls{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.status-colors-toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;cursor:pointer}.status-colors-toggle input{accent-color:var(--gold)}@media(max-width:600px){.notes-header-controls{gap:10px;justify-content:flex-end}}
 .status-colors-switch{display:flex;align-items:center;gap:9px;border:0;background:none;padding:4px 0 4px 12px;flex-shrink:0}.status-colors-switch:hover{background:none}.switch-label{font-size:11px;color:var(--muted);font-weight:400}.switch-track{display:block;position:relative;width:36px;height:20px;border-radius:12px;background:#59615a;transition:background .18s}.switch-track:after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .18s}.status-colors-switch[aria-checked=true] .switch-track{background:var(--gold)}.status-colors-switch[aria-checked=true] .switch-track:after{transform:translateX(16px)}@media(max-width:500px){.status-colors-switch .switch-label{display:none}.status-colors-switch{padding-left:4px}}
+.category-heading{display:flex;align-items:center;gap:12px;padding-right:18px}.category-link{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;text-align:left;font:inherit;font-weight:600;color:inherit;border:0;background:transparent;cursor:pointer}.category-link:hover{background:#ffffff06}.category-link .folder-count{margin-left:auto}
+.party-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:24px;margin-top:28px;align-items:start}.party-card{padding:0;overflow:hidden;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%;min-width:0}.party-card:hover{transform:translateY(-3px);border-color:var(--gold)}.party-portrait,.party-placeholder{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:contain;background:#101811}.party-placeholder{display:grid;place-items:center;font:70px 'Libre Baskerville',serif;color:var(--gold)}.party-copy{padding:22px}.party-copy h2{font-size:24px;margin:0 0 12px}.party-copy p{color:var(--muted);font-size:13px;line-height:1.7;margin:0;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}.party-copy>span{display:block;margin-top:20px;color:var(--gold);font-size:12px}@media(max-width:600px){.party-grid{grid-template-columns:1fr;gap:18px}}
+/* Desktop navigation and content move together. */
+@media(min-width:851px){
+ .app{grid-template-columns:56px minmax(0,1fr);transition:grid-template-columns .2s ease}
+ .app:has(.sidebar:is(:hover,:focus-visible,:has(:focus-visible))){grid-template-columns:240px minmax(0,1fr)}
+ .sidebar{position:fixed;inset:0 auto 0 0;width:56px;height:100dvh;padding:30px 0;z-index:1500;overflow:hidden;transition:width .2s ease,box-shadow .2s ease}
+ .main{grid-column:2}
+ .sidebar>.brand{width:240px;padding-left:18px;height:32px;white-space:nowrap;font-size:0}
+ .sidebar>.brand:before{content:'E';display:inline-block;font:25px 'Libre Baskerville',serif;color:var(--gold)}
+ .sidebar>:not(.brand){width:204px;margin-left:18px;opacity:0;visibility:hidden;transition:opacity .15s ease}
+ .sidebar:after{content:'›';position:absolute;top:50%;left:19px;font-size:28px;color:var(--gold);pointer-events:none}
+ .sidebar:is(:hover,:focus-visible,:has(:focus-visible)){width:240px;box-shadow:10px 0 32px #0005}
+ .sidebar:is(:hover,:focus-visible,:has(:focus-visible))>.brand{font-size:25px;padding-left:32px}
+ .sidebar:is(:hover,:focus-visible,:has(:focus-visible))>.brand:before{display:none}
+ .sidebar:is(:hover,:focus-visible,:has(:focus-visible))>:not(.brand){opacity:1;visibility:visible}
+ .sidebar:is(:hover,:focus-visible,:has(:focus-visible)):after{display:none}
+}
+@media(prefers-reduced-motion:reduce){.app,.sidebar,.sidebar>:not(.brand){transition:none}}
+.topbar{gap:18px}.crumb{min-width:0}.crumb strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vault-search{position:relative;flex:0 1 300px;min-width:150px;margin-left:auto}.vault-search .search{width:100%}.vault-search input{width:100%;min-width:0;font-size:13px}.search:focus-within{border-color:var(--gold)}.search-results{position:absolute;right:0;top:calc(100% + 10px);z-index:1600;width:min(440px,calc(100vw - 36px));max-height:70vh;overflow:auto;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 12px 35px #0008}.search-count{padding:4px 6px 12px;color:var(--muted);font-size:12px}.search-results .card{display:block;width:100%;margin-bottom:8px}.search-results .card.has-portrait{display:grid}.search-results .card h3{margin-top:0}.search-results .card-portrait{width:64px;height:80px}.search-results .card.has-portrait{grid-template-columns:minmax(0,1fr) 64px}@media(max-width:600px){.topbar{padding:0 16px;gap:10px}.crumb>span{display:none}.vault-search{flex-basis:190px}}
+
+/* Give opened location maps the full viewport beneath the navigation bar. */
+.content:has(>#atlasView:not(.hidden)){max-width:none;padding:12px}
+#atlasView .map-layout{margin-top:0;height:calc(100dvh - 100px);min-height:0;grid-template-columns:minmax(0,1fr) 240px}
+#atlasView .map-wrap{min-height:0}
+#atlasView #map{height:100%;min-height:0}
+#atlasView .map-side{min-height:0}
+#atlasView .locations{max-height:none;min-height:0}
+#atlasView .map-note-panel{margin-top:16px}
+@media(max-width:850px){
+ .content:has(>#atlasView:not(.hidden)){padding:8px}
+ #atlasView .map-layout{height:auto;grid-template-columns:1fr}
+ #atlasView .map-wrap{height:calc(100dvh - 78px);min-height:300px}
+ #atlasView .map-side{max-height:220px}
+ #atlasView .locations{max-height:165px}
+}
+.party-title{font-size:clamp(28px,3vw,40px);font-weight:700;text-align:center;color:var(--text);margin:8px 0 28px}
 </style><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"></head><body>
-<div class="app"><aside class="sidebar" id="sidebar"><div class="brand">Everwood</div><div class="eyebrow" style="padding-left:14px">Workspace</div><nav class="nav"><button class="active" data-view="atlas">♧ <span>World atlas</span></button><button data-view="notes">▤ <span>All notes</span><span class="badge" id="noteCount">0</span></button><button data-view="maps">◇ <span>My maps</span><span class="badge" id="mapCount">0</span></button></nav><div class="eyebrow" style="padding-left:14px">Recently opened</div><div class="side-notes" id="sideNotes"></div></aside>
-<main class="main"><header class="topbar"><div class="crumb"><button class="mobile-menu" id="menu" aria-label="Open navigation">☰</button><span>My campaign vault</span><span style="color:#536256">/</span><strong id="breadcrumb">World atlas</strong></div><div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Connecting to your vault…</span></div></header><div class="content"><div class="heading"><div><h1 id="pageTitle">World atlas</h1></div><div class="heading-actions"><button id="backToMaps" class="hidden">← All maps</button></div></div><div class="toolbar"><div class="tabs"><button class="active" data-view="atlas">World atlas</button><button data-view="notes">Notes</button><button data-view="maps">Maps</button></div><label class="search">⌕ <input id="search" placeholder="Search" aria-label="Search notes and locations"></label></div>
-<section id="atlasView"><div class="map-layout"><div class="map-wrap"><div class="map-top"><select id="mapSelect" aria-label="Select a map"></select></div><div id="map" aria-label="Interactive fantasy map"></div><div id="mapError" class="hidden" style="position:absolute;inset:100px 20px auto;z-index:700;background:var(--panel);padding:24px;border-radius:8px"></div></div><aside class="map-side"><div class="side-title">Mapped locations <span id="pinCount"></span></div><div class="locations" id="locations"></div></aside></div><section id="mapNotePanel" class="map-note-panel hidden"><article id="mapNoteText" class="markdown"></article></section><div class="section-head"><h2>Recent notes</h2><button data-view="notes">View all notes &nbsp; ↗</button></div><div class="cards" id="recentCards"></div></section>
-<section id="notesView" class="hidden"><div class="section-head"><h2>Notes</h2><div class="notes-header-controls"><span class="eyebrow" id="notesSummary"></span></div></div><div class="note-tree" id="allNotes"></div></section><section id="mapsView" class="hidden"><div class="section-head"><h2>Maps</h2></div><div class="note-grid" id="allMaps"></div></section><section id="noteView" class="hidden note-page"><article class="markdown" id="noteBody"></article><div class="note-page-actions"><button id="downloadNote">Download Markdown</button></div></section></div></main></div>
+<div class="app"><aside class="sidebar" id="sidebar" tabindex="0" aria-label="Workspace navigation"><div class="brand">Everwood</div><div class="eyebrow" style="padding-left:14px">Workspace</div><nav class="nav"><button class="active" data-view="home"><span aria-hidden="true">⌂</span><span>Party overview</span></button><button data-view="notes">▤ <span>All notes</span><span class="badge" id="noteCount">0</span></button></nav><div class="eyebrow" style="padding-left:14px">Recently opened</div><div class="side-notes" id="sideNotes"></div></aside>
+<main class="main"><header class="topbar"><div class="crumb"><button class="mobile-menu" id="menu" aria-label="Open navigation">☰</button><span>My campaign vault</span><span style="color:#536256">/</span><strong id="breadcrumb">Party overview</strong></div><div class="vault-search" role="search"><label class="search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="search" type="search" placeholder="Search vault…" aria-label="Search vault" aria-controls="searchResults" autocomplete="off"></label><div id="searchResults" class="search-results hidden" aria-label="Search results"></div></div></header><div class="content"><section id="atlasView" class="hidden"><div class="map-layout"><div class="map-wrap"><div class="map-top"><select id="mapSelect" aria-label="Select a map"></select></div><div id="map" aria-label="Interactive fantasy map"></div><div id="mapError" class="hidden" style="position:absolute;inset:100px 20px auto;z-index:700;background:var(--panel);padding:24px;border-radius:8px"></div></div><aside class="map-side"><div class="side-title">Mapped locations <span id="pinCount"></span></div><div class="locations" id="locations"></div></aside></div><section id="mapNotePanel" class="map-note-panel hidden"><article id="mapNoteText" class="markdown"></article></section><div class="section-head"><h2>Recent notes</h2><button data-view="notes">View all notes &nbsp; ↗</button></div><div class="cards" id="recentCards"></div></section>
+<section id="homeView"><h2 class="party-title">The Heroes</h2><div class="party-grid" id="partyCards"></div></section><section id="notesView" class="hidden"><div class="section-head"><h2>Notes</h2><div class="notes-header-controls"><span class="eyebrow" id="notesSummary"></span></div></div><div class="note-tree" id="allNotes"></div></section><section id="mapsView" class="hidden"><div class="section-head"><h2>Maps</h2></div><div class="note-grid" id="allMaps"></div></section><section id="noteView" class="hidden note-page"><article class="markdown" id="noteBody"></article><div class="note-page-actions"><button id="downloadNote">Download Markdown</button></div></section></div></main></div>
 <div class="toast hidden" id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script><script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 <script>
@@ -44,10 +80,10 @@ body:not(.status-colors-off) .card.is-sepia{filter:sepia(.85);background:#28251e
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function emptyState(){return {notes:[],assets:[],maps:[]}}
 function removeSampleContent(vault){vault.maps=vault.maps.filter(m=>!m.demo&&m.id!=='demo');vault.notes=vault.notes.filter(n=>!['note-harbour','note-forest','note-spire'].includes(n.id));return vault}
-let loaded=false;let state,view='atlas',activeMap=null,map,storageOK=false,saveChain=Promise.resolve(),recent=[],toastTimer;
+let loaded=false;let state,view='home',activeMap=null,map,storageOK=false,saveChain=Promise.resolve(),recent=[],toastTimer;
 function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),4500)}
 async function api(url,options){const r=await fetch(url,options);if(!r.ok){let m;try{m=(await r.json()).error}catch{}throw Error(m||'Request failed. Please try again.')}return r}
-function save(){if(!loaded)return Promise.reject(Error("Vault storage is offline. Reload before making changes."));const snapshot=JSON.stringify(state);$('statusText').textContent='Saving…';saveChain=saveChain.catch(()=>{}).then(()=>api('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:snapshot})).then(()=>{$('statusText').textContent='All changes saved';storageOK=true}).catch(e=>{$('statusText').textContent='Changes not saved';toast(e.message);throw e});return saveChain}
+function save(){if(!loaded)return Promise.reject(Error("Vault storage is offline. Reload before making changes."));const snapshot=JSON.stringify(state);saveChain=saveChain.catch(()=>{}).then(()=>api('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:snapshot})).then(()=>{storageOK=true}).catch(e=>{toast(e.message);throw e});return saveChain}
 let viewingVaultMap=false;
 let mapTrail=[],noteOrigin=null,activeNoteId=null;
 function captureMapView(){const selected=current();if(!selected)return null;return {id:selected.id,center:map?.getCenter(),zoom:map?.getZoom()}}
@@ -67,8 +103,7 @@ function openAtlasMap(id,options={}){
  const selected=state.maps.find(m=>m.id===id);if(!selected)return toast('Map is not available yet.');
  if(options.remember!==false&&activeMap!==id&&(view==='atlas'||viewingVaultMap||noteOrigin)){const previous=noteOrigin||captureMapView();if(previous){mapTrail.push(previous);if(mapTrail.length>100)mapTrail.shift()}}
  clearNoteMaps();noteOrigin=null;activeMap=id;
- if(selected.sourceNoteId&&selected.id!==worldAtlasMap(state.maps)?.id){setView('maps');viewingVaultMap=true;$('mapsView').classList.add('hidden');$('atlasView').classList.remove('hidden');$('backToMaps').classList.remove('hidden');$('pageTitle').textContent=displayNoteTitle(selected.name);$('breadcrumb').textContent='My maps / '+displayNoteTitle(selected.name)}
- else setView('atlas',{keepTrail:true});
+ {setView('locations');viewingVaultMap=true;$('notesView').classList.add('hidden');$('atlasView').classList.remove('hidden');$('breadcrumb').textContent='Locations / '+displayNoteTitle(selected.name)}
  document.title=selected.name+' · Everwood';loadMap();if(options.restore?.center&&map)map.setView(options.restore.center,options.restore.zoom);updateReturnButton();setTimeout(()=>map?.invalidateSize(),50);
 }
 function updateNoteCards(id,html){
@@ -76,18 +111,39 @@ function updateNoteCards(id,html){
  if(container._cardsHTML===html)return;
  container._cardsHTML=html;container.innerHTML=html;
 }
+function renderParty(){
+ const q=$('search').value.trim().toLowerCase();
+ const party=state.notes.filter(isLivingPlayerCharacter).sort((a,b)=>a.path.localeCompare(b.path,undefined,{numeric:true}));
+ const matches=party.filter(n=>matchesNoteTitle(n,q));
+ updateNoteCards('partyCards',matches.map(n=>{
+  const preview=notePreview(n,state),portrait=characterPortrait(n,state.assets),title=displayNoteTitle(n.title);
+  return '<button class="party-card" data-note="'+esc(n.id)+'">'+(portrait?'<img class="party-portrait" src="'+esc(portrait)+'" alt="Portrait of '+esc(title)+'" width="320" height="400" decoding="async">':'<div class="party-placeholder" aria-hidden="true">'+esc(title.slice(0,1))+'</div>')+'<div class="party-copy"><h2>'+esc(title)+'</h2><p>'+esc(preview.excerpt)+'</p><span>View character →</span></div></button>';
+ }).join('')||'<div class="empty">'+(party.length?'No matching player characters.':'No living player characters found in the vault.')+'</div>');
+}
+function renderSearch(){
+ const q=$('search').value.trim().toLowerCase(),panel=$('searchResults');
+ panel.classList.toggle('hidden',!q);
+ if(!q){panel.innerHTML='';return}
+ const matches=state.notes.filter(n=>matchesNoteTitle(n,q)).sort((a,b)=>Number(b.title.toLowerCase().includes(q))-Number(a.title.toLowerCase().includes(q))||a.title.localeCompare(b.title));
+ panel.innerHTML='<div class="search-count" role="status">'+matches.length+' matching notes</div>'+matches.slice(0,8).map(noteCard).join('')+(matches.length?'':'<div class="empty">No matching notes.</div>');
+}
 function render(){
+ renderSearch();
+ renderParty();
+ renderWorkspaceTypes();
  const {notes:regularNotes,mapNotes}=partitionVaultNotes(state.notes);
  $('noteCount').textContent=regularNotes.length;
- $('mapCount').textContent=state.maps.filter(m=>!m.sourceNoteId).length+mapNotes.length;
  const recentNotes=recent.length?recent.map(id=>regularNotes.find(n=>n.id===id)).filter(Boolean):regularNotes.slice(0,5);
  $('sideNotes').innerHTML=recentNotes.map(n=>'<button data-note="'+esc(n.id)+'">▤ &nbsp; '+esc(displayNoteTitle(n.title))+'</button>').join('');
- const q=$('search').value.toLowerCase();
- const matches=n=>(n.title+' '+n.text+' '+n.path).toLowerCase().includes(q);
+ const q=$('search').value.trim().toLowerCase();
+ const matches=n=>matchesNoteTitle(n,q);
  const notes=regularNotes.filter(matches);
  updateNoteCards('recentCards',notes.slice(0,3).map(noteCard).join('')||'<div class="empty">No notes.</div>');
  renderNoteTree(state.notes.filter(matches),q);
- $('notesSummary').textContent=notes.length+' notes';
+ const controls=$('notesSummary').parentElement;
+ controls.querySelector('[data-status-colors]')?.remove();
+ if(view==='characters')controls.insertAdjacentHTML('beforeend','<button type="button" class="status-colors-switch" data-status-colors role="switch" aria-checked="'+statusColorsEnabled+'" aria-label="Status colors" title="Status colors"><span class="switch-label">Status colors</span><span class="switch-track" aria-hidden="true"></span></button>');
+ $('notesSummary').textContent=state.notes.filter(matches).filter(n=>!noteTypes[view]||noteTypeForNote(n)===view).length+' notes';
  $('mapSelect').innerHTML=state.maps.map(m=>'<option value="'+esc(m.id)+'">'+esc(displayNoteTitle(m.name))+'</option>').join('');
  $('mapSelect').value=current()?.id||'';
  const vaultMapCards=mapNotes.filter(matches).map(noteCard).join('');
@@ -97,6 +153,15 @@ function render(){
 }
 
 const expandedNoteFolders=new Set();
+const noteTypes={characters:'Characters',encounters:'Encounters',factions:'Factions',locations:'Locations',sessions:'Sessions',templates:'Templates'};
+function noteType(name){return folderPresentation(name).label.toLowerCase()}
+function noteTypeForNote(note){return noteType(String(note.path||'').replaceAll('\\','/').split('/')[0])}
+function renderWorkspaceTypes(){
+ const nav=document.querySelector('.sidebar .nav');
+ if(nav.querySelector('[data-note-type]'))return;
+ const folders=buildNoteTree(state.notes).folders;
+ nav.querySelector('[data-view="notes"]').insertAdjacentHTML('afterend',Object.entries(noteTypes).map(([key,label])=>'<button data-note-type="'+key+'" data-view="'+key+'"><span aria-hidden="true">'+esc(folderPresentation(folders.find(f=>noteType(f.name)===key)?.name||'').emoji||'•')+'</span><span>'+label+'</span></button>').join(''));
+}
 let statusColorsEnabled=true;
 function folderPresentation(name){
  const segments=[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(name)].map(s=>s.segment);
@@ -104,10 +169,13 @@ function folderPresentation(name){
  return {emoji:segments.filter(isEmoji).join(''),label:displayNoteTitle(segments.filter(s=>!isEmoji(s)).join('').replace(/\s+/g,' ').trim()||name)};
 }
 function renderNoteTree(notes,query=''){
- const root=buildNoteTree(notes);
+ let root=buildNoteTree(notes);
+ if(noteTypes[view])root=root.folders.find(folder=>noteType(folder.name)===view)||{folders:[],notes:[]};
  const branch=node=>node.folders.map(folder=>{
   const count=countNotes(folder),presentation=folderPresentation(folder.name);
   const statusSwitch=/^characters$/i.test(presentation.label)?'<button type="button" class="status-colors-switch" data-status-colors role="switch" aria-checked="'+statusColorsEnabled+'" aria-label="Status colors" title="Status colors"><span class="switch-label">Status colors</span><span class="switch-track" aria-hidden="true"></span></button>':'';
+  const type=noteType(folder.name);
+  if(node===root&&view==='notes'&&noteTypes[type])return '<div class="note-folder"><div class="category-heading"><button class="category-link" data-view="'+type+'"><span class="'+(presentation.emoji?'folder-emoji':'folder-icon')+'" aria-hidden="true">'+esc(presentation.emoji)+'</span><span>'+esc(presentation.label)+'</span><span class="folder-count">'+count+'</span></button>'+statusSwitch+'</div></div>';
   return '<details class="note-folder" data-folder="'+esc(folder.path)+'"'+(query||expandedNoteFolders.has(folder.path)?' open':'')+'><summary><span class="'+(presentation.emoji?'folder-emoji':'folder-icon')+'" aria-hidden="true">'+esc(presentation.emoji)+'</span><span>'+esc(presentation.label)+'</span><span class="folder-count">'+count+'</span>'+statusSwitch+'</summary><div class="folder-children">'+branch(folder)+'</div></details>';
  }).join('')+(node.notes.length?'<div class="folder-notes">'+node.notes.map(noteCard).join('')+'</div>':'');
  function countNotes(node){return node.notes.length+node.folders.reduce((total,folder)=>total+countNotes(folder),0)}
@@ -124,11 +192,11 @@ function noteCard(n){
  const {excerpt,artwork,isMap,dead,sepia}=notePreview(n,state),title=displayNoteTitle(n.title);
  return '<button class="card'+(artwork?' has-portrait':'')+(isMap?' has-map-preview':'')+(dead?' is-dead':'')+(sepia?' is-sepia':'')+'" data-note="'+esc(n.id)+'"><div class="card-copy"><h3>'+esc(title)+'</h3><p>'+esc(excerpt)+'</p></div>'+(artwork?'<img class="card-portrait'+(isMap?' card-map-preview':'')+'" src="'+esc(artwork)+'" alt="'+(isMap?'Map of ':'Portrait of ')+esc(title)+'" width="96" height="120" loading="lazy" decoding="async" fetchpriority="low">':'')+'</button>';
 }
-function setView(v,options={}){if(v==='atlas'){activeMap=worldAtlasMap(state.maps)?.id;if(!options.keepTrail)mapTrail=[];}document.title='Everwood';clearNoteMaps();view=v;if(v!=='note'){activeNoteId=null;noteOrigin=null;}viewingVaultMap=false;$('backToMaps').classList.add('hidden');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===(v==='note'?'notes':v)));for(const x of ['atlas','notes','maps','note'])$(x+'View').classList.toggle('hidden',x!==v);$('breadcrumb').textContent={atlas:'World atlas',notes:'All notes',maps:'My maps',note:'Notes'}[v];$('pageTitle').textContent={atlas:'World atlas',notes:'Notes',maps:'Maps',note:'Note'}[v];$('sidebar').classList.remove('open');if(v==='atlas'){loadMap();setTimeout(()=>map?.invalidateSize(),50)}render();updateReturnButton()}
+function setView(v,options={}){if(v==='atlas'){activeMap=worldAtlasMap(state.maps)?.id;if(!options.keepTrail)mapTrail=[];}document.title='Everwood';clearNoteMaps();view=v;if(v!=='note'){activeNoteId=null;noteOrigin=null;}viewingVaultMap=false;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===(v==='note'?'notes':v)));for(const x of ['home','atlas','notes','maps','note'])$(x+'View').classList.toggle('hidden',x!==(noteTypes[v]?'notes':v));$('breadcrumb').textContent={home:'Party overview',atlas:'World atlas',notes:'All notes',maps:'My maps',note:'Notes'}[v];if(noteTypes[v]){$('breadcrumb').textContent=noteTypes[v];document.title=noteTypes[v]+' — Everwood'}$('notesView').querySelector('h2').textContent=noteTypes[v]||'Notes';$('sidebar').classList.remove('open');if(v==='atlas'){loadMap();setTimeout(()=>map?.invalidateSize(),50)}render();updateReturnButton()}
 document.addEventListener('click',e=>{const v=e.target.closest('[data-view]'),n=e.target.closest('[data-note]'),m=e.target.closest('[data-map]');if(v)setView(v.dataset.view);if(n)openNote(n.dataset.note);if(m)openAtlasMap(m.dataset.map)});
 function initMap(){map=new ZoomMapRenderer($('map'),{onBack:returnToMap,onPin:showPin,markerHTML:pin=>markerBubble(pin.kind),onError:message=>{$('mapError').textContent=message;$('mapError').classList.remove('hidden')}});loadMap()}
 function loadMap(){
- if(!map)return;const m=current();$('mapError').classList.toggle('hidden',!!m&&!m.error);$('mapError').textContent=m?.error||(!m?'Choose a map from My maps.':'');
+ if(!map)return;const m=current();$('mapError').classList.toggle('hidden',!!m&&!m.error);$('mapError').textContent=m?.error||(!m?'Choose a map from Locations.':'');
  if(!m||m.error){map.clear();$('locations').innerHTML='';$('pinCount').textContent='0 places';return}
  activeMap=m.id;map.setMap(m,{preserve:map.data?.id===m.id});render();updateReturnButton();
 }
@@ -139,8 +207,8 @@ function markerSymbol(type){
 }
 function markerBubble(type){const d=markerDefinition(state,type);return '<div class="pin" style="background-color:'+d.color+';border-color:'+d.color+'"><span>'+markerSymbol(type)+'</span></div>'}
 function renderPins(){
- const m=current();if(!m)return;const q=$('search').value.toLowerCase();
- const pins=m.pins.filter(p=>(p.name+' '+p.description).toLowerCase().includes(q)).sort((a,b)=>String(a.kind).localeCompare(String(b.kind),undefined,{sensitivity:'base',numeric:true})||a.name.localeCompare(b.name,undefined,{sensitivity:'base',numeric:true}));
+ const m=current();if(!m)return;const q=$('search').value.trim().toLowerCase();
+ const pins=m.pins.filter(p=>p.name.toLowerCase().includes(q)).sort((a,b)=>String(a.kind).localeCompare(String(b.kind),undefined,{sensitivity:'base',numeric:true})||a.name.localeCompare(b.name,undefined,{sensitivity:'base',numeric:true}));
  $('pinCount').textContent=pins.length+' places';$('locations').innerHTML=pins.map(p=>'<button class="location" data-pin="'+esc(p.id)+'"><span class="pin-symbol" style="background-color:'+markerDefinition(state,p.kind).color+';border-color:'+markerDefinition(state,p.kind).color+'">'+markerSymbol(p.kind)+'</span><span><b>'+esc(p.name)+'</b><small>'+esc(markerDefinition(state,p.kind).type)+'</small></span></button>').join('')||'<div class="empty">No locations.</div>';
  map?.setPins(pins);
 }
@@ -197,7 +265,7 @@ function openNote(id){
  clearNoteMaps();noteOrigin=origin;setView('note');activeNoteId=id;
  recent=[id,...recent.filter(x=>x!==id)].slice(0,6);
  const configs=[];$('noteBody').innerHTML=buildNoteHTML(n,configs);$('noteBody').dataset.noteId=id;
- $('pageTitle').textContent=displayNoteTitle(n.title);$('breadcrumb').textContent='Notes / '+displayNoteTitle(n.title);
+ $('breadcrumb').textContent='Notes / '+displayNoteTitle(n.title);
  document.title=displayNoteTitle(n.title)+' · Everwood';wireNoteContent($('noteBody'),n,configs);
  $('downloadNote').onclick=()=>download(n.title+'.md',n.text,'text/markdown');render();window.scrollTo({top:0});
 }
@@ -215,8 +283,12 @@ async function mountNoteMap(frame,config,note){
 
 document.addEventListener('click',e=>{const b=e.target.closest('[data-missing]');if(b)toast('Import the linked note: '+b.dataset.missing)});
 function download(name,body,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([body],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-$('backToMaps').onclick=()=>setView('maps');
-$('search').oninput=render;$('menu').onclick=()=>$('sidebar').classList.toggle('open');$('mapSelect').onchange=e=>openAtlasMap(e.target.value);
+$('search').addEventListener('input',()=>render());
+$('search').addEventListener('focus',()=>{if(loaded)renderSearch()});
+$('search').addEventListener('keydown',event=>{if(event.key==='Escape'){$('searchResults').classList.add('hidden');$('search').blur()}});
+document.addEventListener('click',event=>{if(event.target.closest('#searchResults [data-note]'))$('search').value=''},true);
+document.addEventListener('click',event=>{if(!event.target.closest('.vault-search')||event.target.closest('[data-note]'))queueMicrotask(()=>$('searchResults').classList.add('hidden'))});
+$('menu').onclick=()=>$('sidebar').classList.toggle('open');$('mapSelect').onchange=e=>openAtlasMap(e.target.value);
 
 // Local-only endpoint; hosted Sites continue using their existing storage.
 let checkingLocalVault=false;
@@ -232,13 +304,12 @@ async function refreshLocalVault(){
    // Keep maps and in-progress pin forms owned by this browser.
    state.notes=fresh.notes;state.assets=fresh.assets;state.zoomData=fresh.zoomData;
    await syncVaultAtlas();state.localRevision=fresh.localRevision;
-   if(viewingVaultMap||view==='atlas'){if(state.maps.some(m=>m.id===activeMap))loadMap();else setView('maps')}
+   if(viewingVaultMap||view==='atlas'){if(state.maps.some(m=>m.id===activeMap))loadMap();else setView('locations')}
    render();
    if(openId){if(state.notes.some(n=>n.id===openId))openNote(openId);else{setView('notes');toast('This note was removed or renamed in Obsidian.')}}
   }
-  $('statusText').textContent='Live sync · Obsidian Campaign';$('statusDot').style.background='#8eb38a';
- }catch(e){$('statusText').textContent='Live sync paused · retrying';$('statusDot').style.background='#d3b77a'}
- finally{checkingLocalVault=false}
+
+ }catch{}finally{checkingLocalVault=false}
 }
 setInterval(refreshLocalVault,2000);
 window.addEventListener('focus',refreshLocalVault);
@@ -260,23 +331,25 @@ document.addEventListener('click',event=>{
 let routingReady=false,restoringRoute=false,navigationDepth=0;
 function writeRoute(path){if(routingReady&&!restoringRoute&&location.pathname!==path)history.pushState(null,'',path)}
 const originalSetView=setView,originalOpenNote=openNote,originalOpenAtlasMap=openAtlasMap;
-setView=function(v,options={}){navigationDepth++;try{return originalSetView(v,options)}finally{navigationDepth--;if(!navigationDepth&&v!=='note')writeRoute(v==='atlas'?'/':v==='maps'?'/maps':'/notes')}};
+setView=function(v,options={}){navigationDepth++;try{return originalSetView(v,options)}finally{navigationDepth--;if(!navigationDepth&&v!=='note')writeRoute(v==='home'?'/':noteTypes[v]?'/notes/type/'+v:v==='atlas'?'/':v==='maps'?'/maps':'/notes')}};
 openNote=function(id){navigationDepth++;try{return originalOpenNote(id)}finally{navigationDepth--;const note=state.notes.find(n=>n.id===id);if(!navigationDepth&&note)writeRoute(noteURL(note,state.notes))}};
 openAtlasMap=function(id,options={}){navigationDepth++;try{return originalOpenAtlasMap(id,options)}finally{navigationDepth--;if(!navigationDepth){const m=state.maps.find(m=>m.id===id),n=state.notes.find(n=>n.id===m?.sourceNoteId);if(n)writeRoute(noteURL(n,state.notes));else if(m)writeRoute('/')}}};
 function restoreRoute(){
  if(!routingReady)return;
  restoringRoute=true;
  try{
-  if(location.pathname.startsWith('/notes/')){
+  const type=location.pathname.match(/^\/notes\/type\/([^/]+)\/?$/)?.[1];
+  if(noteTypes[type])setView(type);
+  else if(location.pathname.startsWith('/notes/')){
    const note=routeNote(state.notes,location.pathname);
    if(note)openNote(note.id);
-   else{setView('note');$('pageTitle').textContent='Note not found';$('breadcrumb').textContent='Notes';$('noteBody').textContent='This note does not exist or has been renamed.';$('downloadNote').onclick=null;}
-  }else setView(location.pathname==='/notes'?'notes':location.pathname==='/maps'?'maps':'atlas');
+   else{setView('note');$('breadcrumb').textContent='Notes';$('noteBody').textContent='This note does not exist or has been renamed.';$('downloadNote').onclick=null;}
+  }else setView(location.pathname==='/maps'?'locations':location.pathname==='/notes'?'notes':'home');
  }finally{restoringRoute=false}
 }
 window.addEventListener('popstate',restoreRoute);
 
-(async()=>{try{const r=await api('/api/state');state=await r.json();loaded=true;if(!state){state=emptyState();await save()}storageOK=true;$('statusText').textContent='All changes saved'}catch(e){state=emptyState();$('statusText').textContent='Vault storage offline';$('statusDot').style.background='#d3b77a';toast(e.message)}removeSampleContent(state);state.assets??=[];await syncVaultAtlas();activeMap=worldAtlasMap(state.maps)?.id;render();initMap();routingReady=true;restoreRoute();if(state.hosted)$('statusText').textContent='Everwood';refreshLocalVault()})();
+(async()=>{try{const r=await api('/api/state');state=await r.json();loaded=true;if(!state){state=emptyState();await save()}storageOK=true}catch(e){state=emptyState();toast(e.message)}removeSampleContent(state);state.assets??=[];await syncVaultAtlas();activeMap=worldAtlasMap(state.maps)?.id;render();initMap();routingReady=true;restoreRoute();refreshLocalVault()})();
 </script></body></html>
 
 

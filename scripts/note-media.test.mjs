@@ -7,13 +7,13 @@ test('World atlas opens the world map regardless of alphabetical map order',asyn
  const maps=[{id:'city',name:'Grammont',sourcePath:'locations/Grammont Region/Grammont.md'},{id:'isles',name:'Colonial Isles',sourcePath:'locations/World map/Colonial Isles.md'},{id:'world',name:'World',sourcePath:'locations/World map/World.md'}];
  assert.equal(worldAtlasMap(maps).id,'world');
  const html=await readFile('worker/app.html','utf8');const start=html.indexOf('function setView('),end=html.indexOf("\ndocument.addEventListener('click'",start);
- const nodes=new Map();const $=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',classList:{add(){},remove(){},toggle(name,hidden){this.hidden=hidden}}});return nodes.get(id)};
+ const nodes=new Map();const $=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',querySelector(){return {textContent:''}},classList:{add(){},remove(){},toggle(name,hidden){this.hidden=hidden}}});return nodes.get(id)};
  let loaded;
- const context=vm.createContext({displayNoteTitle,state:{maps},activeMap:'city',worldAtlasMap,mapTrail:[{id:'city'}],document:{querySelectorAll:()=>[]},$,
+ const context=vm.createContext({displayNoteTitle,noteTypes:{},state:{maps},activeMap:'city',worldAtlasMap,mapTrail:[{id:'city'}],document:{querySelectorAll:()=>[]},$,
   clearNoteMaps(){},loadMap:()=>{loaded=context.activeMap},render(){},updateReturnButton(){},setTimeout(){}});
  new vm.Script(html.slice(start,end)+"\nsetView('atlas')").runInContext(context);
  assert.equal(context.activeMap,'world');assert.equal(loaded,'world');assert.equal(context.view,'atlas');assert.equal(context.mapTrail.length,0);
- assert.equal($('pageTitle').textContent,'World atlas');assert.equal($('atlasView').classList.hidden,false);assert.equal($('mapsView').classList.hidden,true);
+ assert.equal($('atlasView').classList.hidden,false);assert.equal($('mapsView').classList.hidden,true);
 });
 test('Zoom Map blocks parse settings, quoted paths, comments and image layers',()=>{
  const config=parseZoomMap('image: "Assets/Town.webp"\nheight: 650px\nmaxZoom: 8 # scale\nimageRendering: pixelated\nimageOverlays:\n  - path: Assets/Roads.png\n    name: Roads\n    visible: true');
@@ -163,7 +163,7 @@ test('browser routing updates note and map URLs and restores back navigation',as
  const source=html.slice(html.indexOf('// Synchronize note navigation'),html.indexOf('(async()=>{try{const r=await api'));
  const notes=[{id:'bert',path:'Characters/Bert.md'},{id:'town',path:'locations/Town.md'}];
  const location={pathname:'/notes/Bert'},paths=[];let opened,listener;
- const context=vm.createContext({displayNoteTitle,state:{notes,maps:[{id:'map',sourceNoteId:'town'}]},location,noteURL,routeNote,
+ const context=vm.createContext({displayNoteTitle,noteTypes:{characters:"Characters"},state:{notes,maps:[{id:'map',sourceNoteId:'town'}]},location,noteURL,routeNote,
  history:{pushState(a,b,path){paths.push(path);location.pathname=path}},window:{addEventListener(type,fn){listener=fn}},
  setView(){},openNote(id){opened=id;if(id==='town')context.openAtlasMap('map')},openAtlasMap(){context.setView('maps')},$:()=>({})});
  new vm.Script(source+'\nroutingReady=true;restoreRoute()').runInContext(context);
@@ -191,13 +191,13 @@ test('folder tree expands, collapses and temporarily reveals search results',asy
  const html=await readFile('worker/app.html','utf8');
  const source=html.slice(html.indexOf('const expandedNoteFolders='),html.indexOf('function noteCard(n){'));
  const container={innerHTML:'',addEventListener(type,callback){this.toggle=callback}},search={value:''};
- const context=vm.createContext({displayNoteTitle,buildNoteTree,displayNoteTitle,$:id=>id==='allNotes'?container:search,esc:s=>String(s),noteCard:n=>'<button data-note="'+n.id+'">'+n.title+'</button>',updateNoteCards:(id,html)=>{container.innerHTML=html}});
+ const context=vm.createContext({view:'characters',displayNoteTitle,buildNoteTree,displayNoteTitle,$:id=>id==='allNotes'?container:search,esc:s=>String(s),noteCard:n=>'<button data-note="'+n.id+'">'+n.title+'</button>',updateNoteCards:(id,html)=>{container.innerHTML=html}});
  new vm.Script(source).runInContext(context);
  assert.equal(context.folderPresentation('Characters 🧙🏽‍♂️').emoji,'🧙🏽‍♂️');assert.equal(context.folderPresentation('Characters 🧙🏽‍♂️').label,'Characters');assert.equal(context.folderPresentation('Sessions').emoji,'');
  const notes=[{id:'b',path:'Characters/NPCs/Bert.md',title:'Bert'}];
  context.renderNoteTree(notes);assert(!container.innerHTML.includes(' open'));
- const folder={matches:()=>true,dataset:{folder:'Characters'},open:true};
- container.toggle({target:folder});context.renderNoteTree(notes);assert.match(container.innerHTML,/data-folder="Characters" open/);
+ const folder={matches:()=>true,dataset:{folder:'Characters/NPCs'},open:true};
+ container.toggle({target:folder});context.renderNoteTree(notes);assert.match(container.innerHTML,/data-folder="Characters\/NPCs" open/);
  folder.open=false;container.toggle({target:folder});context.renderNoteTree(notes);assert(!container.innerHTML.includes(' open'));
  context.renderNoteTree(notes,'bert');assert.match(container.innerHTML,/data-folder="Characters\/NPCs" open/);
  context.renderNoteTree(notes);assert(!container.innerHTML.includes(' open'));
@@ -272,4 +272,31 @@ test('missing and unknown characters use sepia and status-color preference disab
  listener(event);assert.equal(disabled,true);assert.equal(prevented,2);assert.equal(stopped,2);
  assert(!html.includes('id="statusColorsToggle"'));assert(html.includes('role="switch"'));
  assert(html.includes('body:not(.status-colors-off) .card.is-dead'));assert(html.includes('body:not(.status-colors-off) .card.is-sepia'));
+});
+
+
+test('party overview includes living PCs and unfinished player notes, excluding NPCs and unavailable characters',async()=>{
+ const {isLivingPlayerCharacter}=await import('../worker/note-media.js');
+ const pc={path:'Characters 🧙/1. Player Characters ⚔️/Hero.md',text:'> | **Status** | Alive |'};
+ assert.equal(isLivingPlayerCharacter(pc),true);
+ for(const status of ['Dead','Missing','Unknown','Deceased'])assert.equal(isLivingPlayerCharacter({...pc,text:'> | **Status** | '+status+' |'}),false);
+ assert.equal(isLivingPlayerCharacter({...pc,text:'> | **Status** | - |'}),true);
+ assert.equal(isLivingPlayerCharacter({...pc,path:'Characters/NPCs/Hero.md'}),false);
+ assert.equal(isLivingPlayerCharacter({path:'Characters/Hero.md',text:'type: PC\nstatus: alive'}),true);
+ const html=await readFile('worker/app.html','utf8');
+ assert.match(html,/id="homeView"/);assert.match(html,/data-view="home"/);assert.match(html,/state.notes.filter\(isLivingPlayerCharacter\)/);
+});
+
+
+test('search matches note and directory titles but ignores body text, extensions and hidden numbering',async()=>{
+ const {matchesNoteTitle}=await import('../worker/note-media.js');
+ const note={title:'3. Pips',path:'Characters 🧙/1. Player Characters/Pips.md',text:'Visits Harjah and knows a secret'};
+ assert.equal(matchesNoteTitle(note,'pips'),true);
+ assert.equal(matchesNoteTitle(note,'PLAYER CHARACTERS'),true);
+ assert.equal(matchesNoteTitle(note,'characters'),true);
+ assert.equal(matchesNoteTitle(note,'harjah'),false);
+ assert.equal(matchesNoteTitle(note,'secret'),false);
+ assert.equal(matchesNoteTitle(note,'.md'),false);
+ assert.equal(matchesNoteTitle(note,'3.'),false);
+ assert.equal(matchesNoteTitle(note,''),true);
 });

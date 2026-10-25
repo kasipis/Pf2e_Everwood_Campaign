@@ -187,3 +187,18 @@ export function characterStatus(note){
 }
 
 export function isDeadCharacter(note){return characterStatus(note)==='dead'}
+
+// The player folder identifies PCs even when their template type is unfinished.
+export function isLivingPlayerCharacter(note){
+ const parts=logicalPath(note.path).split('/').map(displayNoteTitle);
+ if(parts[0]?.toLowerCase()!=='characters')return false;
+ const inPlayerFolder=parts.slice(1,-1).some(part=>/^player characters$/i.test(part));
+ const explicitPC=/^[\s>]*\|\s*(?:\*\*)?Type(?:\*\*)?\s*\|\s*PC\s*\|/im.test(note.text||'')||/^type\s*:\s*["']?PC["']?\s*$/im.test(note.text||'');
+ return (inPlayerFolder||explicitPC)&&!['dead','missing','unknown','deceased'].includes(characterStatus(note));
+}
+
+export function matchesNoteTitle(note,query){
+ const key=String(query||'').trim().toLowerCase();
+ const folders=logicalPath(note.path||'').split('/').slice(0,-1).map(displayNoteTitle);
+ return [displayNoteTitle(note.title),...folders].some(title=>title.toLowerCase().includes(key));
+}
