@@ -3,12 +3,12 @@ import {resolve,dirname,join,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createVaultSync} from './vault-sync.mjs';
 import {portraitThumbnail} from './portrait-thumbnails.mjs';
-import {characterPortrait} from '../worker/note-media.js';
+import {characterPortrait,sessionImage} from '../worker/note-media.js';
 const media=(await readFile('worker/note-media.js','utf8')).replace(/^export /gm,'');
 const renderer=(await readFile('worker/zoom-map-renderer.js','utf8')).replace(/^export /gm,'');
 const css=await readFile('worker/zoom-map-renderer.css','utf8');
 const html=(await readFile('worker/app.html','utf8')).replace('/*__NOTE_MEDIA__*/',()=>media).replace('/*__ZOOM_RENDERER__*/',()=>renderer).replace('</style>',()=>css+'\n</style>');
-const src=(await readFile('worker/index.js','utf8')).replace('/*__HTML__*/ ""',()=>JSON.stringify(html)).replace('/*__VENDORS__*/ {}','{}');
+const src=(await readFile('worker/index.js','utf8')).replace('/*__HTML__*/ ""',()=>JSON.stringify(html));
 await mkdir('dist/server',{recursive:true});await mkdir('dist/.openai',{recursive:true});
 await writeFile('dist/server/index.js',src);await writeFile('dist/.openai/hosting.json',await readFile('.openai/hosting.json'));
 const nodeServer=(await readFile('scripts/preview.mjs','utf8')).replace("from '../dist/server/index.js'","from './server/index.js'");
@@ -21,7 +21,7 @@ const sourceVault=resolve(process.env.VAULT_PATH||fileURLToPath(new URL('../../O
 let snapshot;
 try{snapshot=await createVaultSync(sourceVault).snapshot()}catch(error){if(error.code!=='ENOENT')throw error}
 if(snapshot){
- const portraitURLs=new Set(snapshot.notes.map(note=>characterPortrait(note,snapshot.assets)).filter(Boolean));
+ const portraitURLs=new Set(snapshot.notes.map(note=>characterPortrait(note,snapshot.assets)||sessionImage(note,snapshot.assets)?.url).filter(Boolean));
  for(const asset of snapshot.assets)if(portraitURLs.has(asset.url))await portraitThumbnail(snapshot.files.get(asset.path),resolve('dist/portraits'));
  const stage=await mkdtemp(resolve('dist/.vault-build-'));
  const put=async(path,bytes)=>{const target=resolve(stage,path);if(!target.startsWith(stage+sep))throw Error('Invalid vault path');await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes)};

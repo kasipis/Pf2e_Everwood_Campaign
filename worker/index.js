@@ -1,11 +1,9 @@
 const HTML = /*__HTML__*/ "";
-const VENDORS = /*__VENDORS__*/ {};
 const json = (data,status=200) => Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 export default {
  async fetch(request,env) {
   const url=new URL(request.url), path=url.pathname;
   try {
-   if(path.startsWith('/vendor/')) { const v=VENDORS[path]; return v ? new Response(v.body,{headers:{'Content-Type':v.type,'Cache-Control':'public,max-age=86400'}}) : new Response('Not found',{status:404}); }
    if(path.startsWith('/api/')) {
     // All vault data is protected by the owner-private Sites access boundary.
     if(!env.BUCKET) return json({error:'Vault storage is unavailable.'},503);

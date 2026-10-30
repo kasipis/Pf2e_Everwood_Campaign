@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import vm from 'node:vm';
-import {displayNoteTitle,parseZoomMap,transformNoteMedia,buildVaultAtlas,partitionVaultNotes,matchingMapNote,markerDefinition,resolveMedia,worldAtlasMap} from '../worker/note-media.js';
+import {displayNoteTitle,parseZoomMap,transformNoteMedia,buildVaultAtlas,isMapNote,matchingMapNote,markerDefinition,resolveMedia,worldAtlasMap} from '../worker/note-media.js';
 import worker from '../dist/server/index.js';
 const assets=[{path:'Assets/Town.webp',url:'/local/file/town?v=1'},{path:'Assets/Roads.png',url:'/local/file/roads?v=1'}];
 const note={id:'town',path:'locations/Region/Town.md',title:'Town',text:'```zoommap\nimage: Assets/Town.webp\nmaxZoom: 8\n```'};
@@ -13,7 +13,7 @@ test('World atlas opens the world map regardless of alphabetical map order',asyn
   clearNoteMaps(){},loadMap:()=>{loaded=context.activeMap},render(){},updateReturnButton(){},setTimeout(){}});
  new vm.Script(html.slice(start,end)+"\nsetView('atlas')").runInContext(context);
  assert.equal(context.activeMap,'world');assert.equal(loaded,'world');assert.equal(context.view,'atlas');assert.equal(context.mapTrail.length,0);
- assert.equal($('atlasView').classList.hidden,false);assert.equal($('mapsView').classList.hidden,true);
+ assert.equal($('atlasView').classList.hidden,false);assert.equal($('notesView').classList.hidden,true);
 });
 test('Zoom Map blocks parse settings, quoted paths, comments and image layers',()=>{
  const config=parseZoomMap('image: "Assets/Town.webp"\nheight: 650px\nmaxZoom: 8 # scale\nimageRendering: pixelated\nimageOverlays:\n  - path: Assets/Roads.png\n    name: Roads\n    visible: true');
@@ -35,9 +35,9 @@ test('inline storage, explicit sidecar paths and visible overlays are supported'
  const explicit={...note,text:'```zoommap\nimage: Assets/Town.webp\nmarkers: Pins/Town.markers.json\nimageOverlays:\n  - path: Assets/Roads.png\n    visible: true\n```'};
  const result=await buildVaultAtlas({notes:[explicit],maps:[],assets,zoomData:{files:[{path:'Pins/Town.markers.json',markers:[]}]}},async()=>({width:100,height:100}));assert.equal(result[0].overlays[0].url,assets[1].url);
 });
-test('gallery contains only Zoom Map notes and descriptions match filenames',()=>{
+test('map notes require a Zoom Map and descriptions match filenames',()=>{
  const normal={id:'description',path:'Locations/Town.md',title:'Town'};
- const groups=partitionVaultNotes([note,normal,{path:'locations/Empty.md',text:''}]);assert.equal(groups.mapNotes.length,1);assert.equal(groups.notes.length,2);
+ assert.equal(isMapNote(note),true);assert.equal(isMapNote(normal),false);assert.equal(isMapNote({path:'locations/Empty.md',text:''}),false);
  assert.equal(matchingMapNote([note,normal],{sourcePath:note.path}).id,'town');assert.equal(resolveMedia(assets,'../../Assets/Town.webp',note.path),assets[0]);
 });
 test('Zoom Map icon library supplies marker bubble colors and image icons',()=>{
@@ -108,13 +108,11 @@ test('overview uses thumbnail portraits beside text and preserves unchanged card
  cacheContext.updateNoteCards('allNotes',markup+'changed');assert.equal(replacements,2);
 });
 
-test('location Zoom Maps appear in gallery and atlas after merging folders',async()=>{
+test('location Zoom Maps become interactive maps after merging folders',async()=>{
  const location={...note,path:'locations/Harjah Region/Town.md'};
  const plain={id:'house',path:'locations/House.md',text:'# House'};
  const windows={...note,id:'windows',path:'Locations\\Region\\Town.md',text:note.text.replace('zoommap','zoom-map')};
- const groups=partitionVaultNotes([location,plain,windows]);
- assert.deepEqual(groups.mapNotes.map(n=>n.id),['town','windows']);
- assert.deepEqual(groups.notes.map(n=>n.id),['house']);
+ assert.equal(isMapNote(location),true);assert.equal(isMapNote(windows),true);assert.equal(isMapNote(plain),false);
  const maps=await buildVaultAtlas({notes:[location,plain,windows],assets,maps:[]},async()=>({width:100,height:100}));
  assert.equal(maps.length,2);assert(maps.every(m=>!m.error));
  assert.equal(maps[0].sourcePath,location.path);
@@ -125,9 +123,7 @@ test('retired Maps folder has no special handling and descriptions use the exact
  const legacy={...note,id:'legacy',path:'Maps/Region/Town.md'};
  const current={...note,text:'# Town\nBefore the map.\n'+note.text+'\n## History\nAfter the map.'};
  const duplicate={id:'duplicate',path:'Characters/Town.md',text:'Wrong description'};
- const groups=partitionVaultNotes([legacy,current,duplicate]);
- assert.deepEqual(groups.mapNotes.map(n=>n.id),['town']);
- assert.deepEqual(groups.notes.map(n=>n.id),['legacy','duplicate']);
+ assert.equal(isMapNote(legacy),false);assert.equal(isMapNote(current),true);assert.equal(isMapNote(duplicate),false);
  assert.equal(matchingMapNote([duplicate,legacy,current],{sourcePath:current.path}).id,'town');
  assert.equal(matchingMapNote([duplicate,legacy],{sourcePath:current.path}),null);
  const maps=await buildVaultAtlas({notes:[legacy,current],assets,maps:[]},async()=>({width:100,height:100}));
@@ -162,15 +158,19 @@ test('browser routing updates note and map URLs and restores back navigation',as
  const html=await readFile('worker/app.html','utf8');
  const source=html.slice(html.indexOf('// Synchronize note navigation'),html.indexOf('(async()=>{try{const r=await api'));
  const notes=[{id:'bert',path:'Characters/Bert.md'},{id:'town',path:'locations/Town.md'}];
- const location={pathname:'/notes/Bert'},paths=[];let opened,listener;
+ const location={pathname:'/notes/Bert'},paths=[];let opened,listener,selected;
  const context=vm.createContext({displayNoteTitle,noteTypes:{characters:"Characters"},state:{notes,maps:[{id:'map',sourceNoteId:'town'}]},location,noteURL,routeNote,
- history:{pushState(a,b,path){paths.push(path);location.pathname=path}},window:{addEventListener(type,fn){listener=fn}},
- setView(){},openNote(id){opened=id;if(id==='town')context.openAtlasMap('map')},openAtlasMap(){context.setView('maps')},$:()=>({})});
+ history:{replaceState(a,b,path){location.pathname=path},pushState(a,b,path){paths.push(path);location.pathname=path}},window:{addEventListener(type,fn){listener=fn}},
+ setView(v){selected=v},openNote(id){opened=id;if(id==='town')context.openAtlasMap('map')},openAtlasMap(){context.setView('maps')},$:()=>({})});
  new vm.Script(source+'\nroutingReady=true;restoreRoute()').runInContext(context);
  assert.equal(opened,'bert');assert.equal(paths.length,0);
  new vm.Script("openNote('town')").runInContext(context);assert.deepEqual(paths,['/notes/Town']);
  new vm.Script("setView('notes')").runInContext(context);assert.equal(location.pathname,'/notes');
  location.pathname='/notes/Bert';listener();assert.equal(opened,'bert');assert.equal(paths.length,2);
+ new vm.Script("setView('characters')").runInContext(context);assert.equal(location.pathname,'/notes/characters');
+ location.pathname='/notes/characters';listener();assert.equal(selected,'characters');
+ location.pathname='/notes/type/characters';listener();assert.equal(selected,'characters');assert.equal(location.pathname,'/notes/characters');
+ const reserved={path:'Characters/characters.md',title:'characters'};assert.equal(noteURL(reserved,[reserved]),'/notes/Characters/characters');assert.equal(routeNote([reserved],noteURL(reserved,[reserved])),reserved);
 });
 
 test('note tree mirrors nested vault paths and sorts folders and notes',async()=>{
@@ -210,7 +210,7 @@ test('emoji folders preserve maps, portraits, old links and clean note URLs',asy
  const world={id:'world',sourcePath:'locations 🗺️/World map/World.md'};
  const notes=[bert,town];
  assert.equal(logicalPath('Characters 🧙🏽‍♂️/Bert.md'),'Characters/Bert.md');
- assert.equal(partitionVaultNotes(notes).mapNotes[0],town);
+ assert.equal(isMapNote(town),true);
  assert.equal(characterPortrait(bert,assets),assets[0].url);
  assert.equal(resolveVaultNote(notes,'Characters/Bert'),bert);
  assert.equal(resolveVaultNote(notes,'locations/Harjah Region/Town'),town);
@@ -264,7 +264,7 @@ test('missing and unknown characters use sepia and status-color preference disab
  let disabled,listener,checked;
  const button={setAttribute(name,value){checked=value}};
  const storage=new Map([['atlas-status-colors','false']]);
- const context=vm.createContext({document:{body:{classList:{toggle(name,value){disabled=value}}},querySelectorAll:()=>[button],addEventListener(type,fn){listener=fn}},localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)}});
+ const context=vm.createContext({render(){},document:{body:{classList:{toggle(name,value){disabled=value}}},querySelectorAll:()=>[button],addEventListener(type,fn){listener=fn}},localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)}});
  new vm.Script(source).runInContext(context);assert.equal(disabled,true);assert.equal(checked,'false');
  let prevented=0,stopped=0;
  const event={target:{closest:()=>button},preventDefault(){prevented++},stopPropagation(){stopped++}};
@@ -299,4 +299,106 @@ test('search matches note and directory titles but ignores body text, extensions
  assert.equal(matchesNoteTitle(note,'.md'),false);
  assert.equal(matchesNoteTitle(note,'3.'),false);
  assert.equal(matchesNoteTitle(note,''),true);
+});
+
+
+test('party details read ancestry and class and keep description separate from biography and template text',async()=>{
+ const {characterOverview}=await import('../worker/note-media.js');
+ const note={title:'Hero',text:'# Hero\n\n> [!infobox|wikipedia]\n> | **Ancestry** | [[Elf|Wood elf]] |\n> | **Class or role** | **Wizard** |\n\n**Hero** studies magic with [[Pips]].\n\n%% Template instructions %%\n## Biography\nLater events.'};
+ assert.deepEqual(characterOverview(note),{ancestry:'Wood elf',className:'Wizard',level:'Not recorded',description:'Hero studies magic with Pips.'});
+ assert.deepEqual(characterOverview({title:'Pips',text:'# Pips\n\n**Pips** is .'}),{ancestry:'Not recorded',className:'Not recorded',level:'Not recorded',description:'Description not yet recorded.'});
+ const yaml={title:'Mage',text:'---\nancestry: Elf\nclass: Wizard\n---\n# Mage\n\nA quiet scholar.\n\n## Description\nA curious elf.\n\n## Biography\nA long history.'};
+ assert.deepEqual(characterOverview(yaml),{ancestry:'Elf',className:'Wizard',level:'Not recorded',description:'A curious elf.'});
+});
+
+
+test('party description starts at is after the character name and level comes from the note',async()=>{
+ const {characterOverview}=await import('../worker/note-media.js');
+ const note={title:'Pips',text:'# Pips\n> | **Level** | 5 |\n\n**Pips** is a daring thief.'};
+ assert.equal(characterOverview(note).description,'is a daring thief.');assert.equal(characterOverview(note).level,'5');
+ assert.equal(characterOverview({title:'Pips',text:'---\nlevel: 7\n---\n# Pips\n\nPips is a daring thief.'}).level,'7');
+ const html=await readFile('worker/app.html','utf8');const party=html.slice(html.indexOf('function renderParty(){'),html.indexOf('function renderSearch(){'));
+ assert.ok(party.indexOf('esc(details.description)')<party.indexOf('party-facts'));assert.match(party,/<dt>Level<\/dt>/);
+});
+
+test('session artwork matches numbered notes and appears in pages and preview cards',async()=>{
+ const media=await import('../worker/note-media.js');
+ const asset={path:'Assets/session images/Session1_image.webp',url:'/local/file/session1?v=one',thumbnailUrl:'/local/file/session1?v=one&thumbnail=portrait',width:1536,height:1024};
+ const ten={...asset,path:'Assets/session images/Session10_image.webp',url:'/local/file/session10?v=ten'};
+ const note={id:'s1',path:'Sessions 📖/Session 01.md',title:'Session 01',text:'# Session 01\n\n![[Assets/session images/Session1_image.webp]]\n\nThe party meets at the guildhall.'};
+ assert.equal(media.sessionImage(note,[ten,asset]),asset);
+ assert.equal(media.sessionImage({...note,path:'Sessions 📖/Session 10.md'},[asset,ten]),ten);
+ assert.equal(media.sessionImage({...note,path:'Sessions/Session 02.md'},[asset]),null);
+ assert.equal(media.sessionImage({...note,path:'Characters/Session 01.md'},[asset]),null);
+ const state={assets:[asset,ten],notes:[note],maps:[]};
+ assert.equal(media.notePreview(note,state).artwork,asset.thumbnailUrl);
+ const html=await readFile('worker/app.html','utf8');
+ const marked={Renderer:class {blockquote(token){return token.text}},parse:text=>text};
+ const context=vm.createContext({...media,state,marked,window:{marked,DOMPurify:{}},DOMPurify:{sanitize:s=>s},esc:s=>String(s),resolveNote:()=>null});
+ new vm.Script(html.slice(html.indexOf('function noteCard(n){'),html.indexOf('function setView('))+html.slice(html.indexOf('function noteImage('),html.indexOf('function wireNoteContent('))).runInContext(context);
+ const page=context.buildNoteHTML(note);
+ assert(page.startsWith('<figure class="session-note-art">'));
+ assert.equal(page.split('src="'+asset.url+'"').length-1,1);
+ assert(!page.includes('![[Assets/session images'));
+ assert(page.includes('width="1536" height="1024"'));
+ const card=context.noteCard(note);
+ assert(card.includes('has-portrait'));assert(card.includes('src="'+asset.thumbnailUrl+'"'));assert(card.includes('Scene from Session 01'));
+ assert(card.indexOf('card-copy')<card.indexOf('card-portrait'));
+ assert(!context.buildNoteHTML({...note,path:'Sessions/Session 02.md'}).includes('session-note-art'));
+});
+
+test('character trees group alive, missing and unknown, then dead only while status colors are enabled',async()=>{
+ const {buildNoteTree}=await import('../worker/note-media.js');
+ const notes=[['A','Dead'],['B','Unknown'],['C','Alive'],['D','Missing'],['E','Alive']].map(([name,status])=>({id:name,path:'Characters 🧙/NPCs/'+name+'.md',text:'> | **Status** | '+status+' |'}));
+ const ids=enabled=>buildNoteTree(notes,{statusColors:enabled}).folders[0].folders[0].notes.map(n=>n.id);
+ assert.deepEqual(ids(true),['C','E','B','D','A']);assert.deepEqual(ids(false),['A','B','C','D','E']);
+ assert.deepEqual(notes.map(n=>n.id),['A','B','C','D','E']);
+});
+test('session previews describe only the recap and omit preparation and later sections',async()=>{
+ const {notePreview}=await import('../worker/note-media.js');
+ const note={title:'Session 01',path:'Sessions 📖/Session 01.md',text:'# Session 01\n\n## Preparation\nSecret preparation.\n\n## Recap\nThe party met [[Archie|the mage]].\n\nThey explored **Harjah**.\n\n### Afterward\nThey rested.\n\n## Scenes\nDo not include scenes.\n\n## Notes\nOther details.'};
+ const preview=notePreview(note,{assets:[]});
+ assert.equal(preview.excerpt,'The party met the mage. They explored Harjah. Afterward They rested.');
+ assert.equal(notePreview({...note,text:'# Session 01\n## Preparation\nOnly preparation.'},{assets:[]}).excerpt,'');
+});
+
+test('H2 sections collapse independently, preserve content, and reopen for section links',async()=>{
+ const {makeNoteSectionsCollapsible,revealNoteSection}=await import('../worker/note-media.js');
+ class Element{
+  constructor(tag){this.tagName=this.nodeName=tag.toUpperCase();this.children=[];this.parentElement=null;this.ownerDocument=doc}
+  get nextSibling(){const list=this.parentElement?.children||[];return list[list.indexOf(this)+1]||null}
+  append(...nodes){for(const node of nodes){if(node.parentElement){const old=node.parentElement.children;old.splice(old.indexOf(node),1)}node.parentElement=this;this.children.push(node)}}
+  insertBefore(node,before){if(node.parentElement){const old=node.parentElement.children;old.splice(old.indexOf(node),1)}node.parentElement=this;this.children.splice(this.children.indexOf(before),0,node)}
+ }
+ const doc={createElement:tag=>new Element(tag)};
+ const container=new Element('article'),title=new Element('h1'),box=new Element('aside'),boxHeading=new Element('h2'),first=new Element('h2'),paragraph=new Element('p'),subheading=new Element('h3'),second=new Element('h2'),last=new Element('p');
+ box.append(boxHeading);container.append(title,box,first,paragraph,subheading,second,last);
+ makeNoteSectionsCollapsible(container);
+ assert.deepEqual(container.children.map(el=>el.tagName),['H1','ASIDE','DETAILS','DETAILS']);
+ const [a,b]=container.children.slice(2);assert(a.open&&b.open);
+ assert.equal(a.children[0].children[0],first);assert.deepEqual(a.children[1].children,[paragraph,subheading]);assert.deepEqual(b.children[1].children,[last]);
+ assert.equal(boxHeading.parentElement,box);
+ a.open=false;assert.equal(b.open,true);revealNoteSection(subheading);assert.equal(a.open,true);
+ makeNoteSectionsCollapsible(container);assert.equal(container.children.length,4);
+});
+test('only H4 headings that merely label a session are omitted',async()=>{
+ const {configureNoteLayout}=await import('../worker/note-media.js');
+ const renderer={blockquote:()=>'',parser:{parseInline:tokens=>tokens[0].text}};
+ configureNoteLayout(renderer,{parse:()=>''});
+ for(const text of ['Session 01','Session 10 part 2','<button>Session 03</button>'])assert.equal(renderer.heading({depth:4,text,tokens:[{text}]}),'');
+ for(const [depth,text] of [[3,'Session 01'],[4,'Session 01 aftermath'],[4,'Identity revealed in later sessions']])assert(renderer.heading({depth,text,tokens:[{text}]}).includes('<h'+depth));
+});
+
+test('Obsidian quote callouts render as quotes with titles, formatting and paragraph breaks',async()=>{
+ const {configureNoteLayout}=await import('../worker/note-media.js');
+ const renderer={blockquote:token=>'<blockquote>'+token.text+'</blockquote>'};
+ const parsed=[];const marked={parse:(text,{renderer:active})=>{assert.equal(active,renderer);parsed.push(text);return '<p>'+text+'</p>'},parseInline:title=>title.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')};
+ configureNoteLayout(renderer,marked);
+ const rendered=renderer.blockquote({text:'[!Quote|author mark] **Venturian Tales**<br>By H.M. Collesby\n*The sun rose.*\n\n*The dragon fell.*'});
+ assert(rendered.includes('<figure class="note-quote">'));assert(rendered.includes('<figcaption><strong>Venturian Tales</strong><br>By H.M. Collesby</figcaption>'));
+ assert(rendered.indexOf('</blockquote>')<rendered.indexOf('<figcaption>'));assert(rendered.includes('<blockquote>'));assert.equal(parsed[0],'*The sun rose.*\n\n*The dragon fell.*');assert(!rendered.includes('[!Quote'));
+ const unnamed=renderer.blockquote({text:'[!quote]\nWords worth remembering.'});assert(!unnamed.includes('<figcaption>'));assert(unnamed.includes('Words worth remembering.'));
+ assert(renderer.blockquote({text:'[!cite] A source\nA citation.'}).includes('note-quote'));
+ assert.equal(renderer.blockquote({text:'An ordinary Markdown quote.'}),'<blockquote>An ordinary Markdown quote.</blockquote>');
+ assert(renderer.blockquote({text:'[!infobox|wikipedia]\nCharacter facts.'}).includes('note-infobox'));
 });

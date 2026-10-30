@@ -6,7 +6,6 @@ export function worldAtlasMap(maps){
   maps.find(map=>/\/(?:world|world[ _-]*map)\.(?:md|markdown)$/i.test(logicalPath(map.sourcePath)))||
   maps.find(map=>/^(?:world|world[ _-]*map)$/i.test(map.name||''))||maps.find(map=>!map.error)||maps[0];
 }
-export function partitionVaultNotes(notes){return {notes:notes.filter(n=>!isMapNote(n)),mapNotes:notes.filter(n=>isMapNote(n)&&hasZoomMap(n))}}
 export function matchingMapNote(notes,map){
  if(!map?.sourcePath)return null;
  return notes.find(n=>isMapNote(n)&&mediaPath(n.path)===mediaPath(map.sourcePath))||null;
@@ -103,13 +102,17 @@ export function noteHeadingId(text){return 'note-section-'+String(text).replace(
 export function configureNoteLayout(renderer,marked){
  const quote=renderer.blockquote;
  renderer.blockquote=function(token){
-  const match=/^\[!(infobox|toc)(?:\|([^\]]*))?\][+-]?[^\S\n]*([^\n]*)(?:\n|$)/i.exec(token.text);
+  const match=/^\[!(infobox|toc|quote|cite)(?:\|([^\]]*))?\][+-]?[^\S\n]*([^\n]*)(?:\n|$)/i.exec(token.text);
   if(!match)return quote.call(this,token);
   const body=marked.parse(token.text.slice(match[0].length),{renderer});
   if(match[1].toLowerCase()==='infobox')return '<aside class="note-infobox">'+body+'</aside>\n';
+  if(/^(quote|cite)$/i.test(match[1])){
+   const title=match[3].trim(),caption=title?(marked.parseInline?marked.parseInline(title,{renderer}):title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')):'';
+   return '<figure class="note-quote"><blockquote>'+body+'</blockquote>'+(caption?'<figcaption>'+caption+'</figcaption>':'')+'</figure>\n';
+  }
   return '<nav class="note-contents" aria-label="Contents"><strong>Contents</strong>'+body+'</nav>\n';
  };
- renderer.heading=function({tokens,depth,text}){return '<h'+depth+' id="'+noteHeadingId(text)+'">'+this.parser.parseInline(tokens)+'</h'+depth+'>\n'};
+ renderer.heading=function({tokens,depth,text}){if(depth===4&&isSessionLabel(text))return '';return '<h'+depth+' id="'+noteHeadingId(text)+'">'+this.parser.parseInline(tokens)+'</h'+depth+'>\n'};
  return renderer;
 }
 
@@ -124,7 +127,8 @@ export function noteURL(note,notes=[]){
  const stem=logicalPath(note.path).replace(/\.(md|markdown)$/i,'');
  const name=stem.split('/').pop();
  const duplicates=notes.filter(n=>logicalPath(n.path).replace(/\.(md|markdown)$/i,'').split('/').pop().toLowerCase()===name.toLowerCase());
- return '/notes/'+(duplicates.length>1?stem:name).split('/').map(encodeURIComponent).join('/');
+ const reserved=['characters','encounters','factions','locations','sessions','templates'].includes(name.toLowerCase());
+ return '/notes/'+(duplicates.length>1||reserved?stem:name).split('/').map(encodeURIComponent).join('/');
 }
 export function routeNote(notes,pathname){
  if(!pathname.startsWith('/notes/'))return null;
@@ -132,14 +136,14 @@ export function routeNote(notes,pathname){
  return resolveVaultNote(notes,target);
 }
 
-export function buildNoteTree(notes){
+export function buildNoteTree(notes,{statusColors=false}={}){
  const root={name:'',path:'',folders:[],notes:[]};
  for(const note of notes){
   const parts=mediaPath(note.path).split('/');parts.pop();let parent=root;
   for(const name of parts){let folder=parent.folders.find(f=>f.name===name);if(!folder){folder={name,path:[parent.path,name].filter(Boolean).join('/'),folders:[],notes:[]};parent.folders.push(folder)}parent=folder}
   parent.notes.push(note);
  }
- const sort=node=>{node.folders.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));node.notes.sort((a,b)=>mediaPath(a.path).split('/').pop().localeCompare(mediaPath(b.path).split('/').pop(),undefined,{numeric:true}));node.folders.forEach(sort)};
+ const sort=node=>{node.folders.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));node.notes.sort((a,b)=>(statusColors&&/^characters\//i.test(logicalPath(a.path))&&/^characters\//i.test(logicalPath(b.path))?characterStatusOrder(a)-characterStatusOrder(b):0)||mediaPath(a.path).split('/').pop().localeCompare(mediaPath(b.path).split('/').pop(),undefined,{numeric:true}));node.folders.forEach(sort)};
  sort(root);return root;
 }
 
@@ -162,7 +166,8 @@ export function resolveVaultNote(notes,target,base=''){
 
 export function displayNoteTitle(title){return String(title||'').replace(/^\s*\d+\.\s*/,'')}
 export function notePreview(note,state){
- let artwork=characterPortrait(note,state.assets),isMap=false;
+ const session=sessionImage(note,state.assets);
+ let artwork=characterPortrait(note,state.assets)||session?.url,isMap=false;
  const clean=transformNoteMedia(stripNoteComments(note.text||''),{
   image:()=>'',wikilink:value=>value.split('|').pop(),map:config=>{
    if(!isMap&&isMapNote(note)){
@@ -172,9 +177,9 @@ export function notePreview(note,state){
    return '';
   }
  });
- const excerpt=clean.replace(/^---[\s\S]*?---/,'').replace(/^\s*>.*$/gm,'').replace(/^#+.*$/gm,'').replace(/[#>*\x60\[\]!]/g,'').replace(/\n/g,' ').replace(note.title,'').trim();
+ const excerpt=/^characters\//i.test(logicalPath(note.path))?characterOverview(note).description:/^sessions\//i.test(logicalPath(note.path))?sessionRecapExcerpt(clean):clean.replace(/^---[\s\S]*?---/,'').replace(/^\s*>.*$/gm,'').replace(/^#+.*$/gm,'').replace(/[#>*\x60\[\]!]/g,'').replace(/\n/g,' ').replace(note.title,'').trim();
  const asset=state.assets.find(a=>a.url===artwork);
- return {excerpt,artwork:isMap?artwork:asset?.thumbnailUrl||artwork,isMap,dead:isDeadCharacter(note),sepia:/^(missing|unknown)$/.test(characterStatus(note))};
+ return {excerpt,artwork:isMap?artwork:asset?.thumbnailUrl||artwork,isMap,isSession:/^sessions\//i.test(logicalPath(note.path)),dead:isDeadCharacter(note),sepia:/^(missing|unknown)$/.test(characterStatus(note))};
 }
 
 export function characterStatus(note){
@@ -201,4 +206,69 @@ export function matchesNoteTitle(note,query){
  const key=String(query||'').trim().toLowerCase();
  const folders=logicalPath(note.path||'').split('/').slice(0,-1).map(displayNoteTitle);
  return [displayNoteTitle(note.title),...folders].some(title=>title.toLowerCase().includes(key));
+}
+
+export function characterOverview(note){
+ const text=stripNoteComments(note.text||'').replace(/^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\1[ \t]*$/gm,'');
+ const plain=value=>String(value||'').replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g,'$2').replace(/\[\[([^\]]+)\]\]/g,'$1').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').replace(/<[^>]*>/g,'').replace(/[*_`]/g,'').replace(/\s+/g,' ').trim();
+ const frontmatter=text.match(/^---\s*\n([\s\S]*?)\n---/);
+ const field=labels=>{
+  for(const label of labels){
+   const row=text.match(new RegExp('^[ \t>]*\\|[ \t]*(?:\\*\\*)?'+label+'(?:\\*\\*)?[ \t]*\\|[ \t]*(.+)\\|[ \t]*$','im'));
+   const property=frontmatter?.[1].match(new RegExp('^'+label+':[ \t]*(.+)$','im'));
+   const value=plain(row?.[1]||property?.[1]).replace(/^["']|["']$/g,'');
+   if(value&&!/^[-/?]+$/.test(value))return value;
+  }
+  return 'Not recorded';
+ };
+ const body=text.replace(/^---[\s\S]*?---/,'').replace(/^>.*$/gm,'').replace(/!\[\[[^\]]+\]\]|!\[[^\]]*\]\([^)]+\)/g,'');
+ const section=body.match(/^#{1,6}\s+Description\s*\r?\n([\s\S]*?)(?=^#{1,6}\s|$(?![\s\S]))/im)?.[1];
+ const introduction=body.replace(/^# [^\n]*(?:\n|$)/m,'').split(/^#{1,6}\s/m)[0];
+ let description=plain(section||introduction);
+ if(!description||/^[-/?]+$/.test(description)||description.toLowerCase()===(displayNoteTitle(note.title)+' is .').toLowerCase())description='Description not yet recorded.';
+ const lead=description.match(/^(.+?)\s+(is\b[\s\S]*)$/i);
+ if(lead&&[displayNoteTitle(note.title),field(['Full name'])].some(name=>name.toLowerCase()===lead[1].toLowerCase()))description=lead[2];
+ return {description,ancestry:field(['Ancestry']),className:field(['Class or role','Class']),level:field(['Level'])};
+}
+
+export function sessionImage(note,assets){
+ if(!/^sessions\//i.test(logicalPath(note.path)))return null;
+ const name=displayNoteTitle(logicalPath(note.path).split('/').pop().replace(/\.(md|markdown)$/i,''));
+ const number=/^session[\s_-]*(\d+)(?:\b|[_-])/i.exec(name)?.[1];
+ if(!number)return null;
+ return assets.find(asset=>{
+  const path=logicalPath(asset.path);
+  if(!/^assets\/session images\//i.test(path))return false;
+  const match=/^session[\s_-]*(\d+)[\s_-]*image\.(?:webp|png|jpe?g|gif)$/i.exec(path.split('/').pop());
+  return match&&Number(match[1])===Number(number);
+ })||null;
+}
+
+export function characterStatusOrder(note){
+ const status=characterStatus(note);
+ return status==='dead'||status==='deceased'?2:/^(missing|unknown)$/.test(status)?1:0;
+}
+export function sessionRecapExcerpt(text){
+ const heading=/^(#{1,6})[ \t]+Recap[ \t]*\r?$/im.exec(text);
+ if(!heading)return '';
+ const rest=text.slice(heading.index+heading[0].length);
+ const next=new RegExp('^#{1,'+heading[1].length+'}[ \\t]+','m').exec(rest);
+ return rest.slice(0,next?next.index:undefined).replace(/!\[[^\]]*\]\([^)]+\)/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').replace(/<[^>]*>/g,'').replace(/[#>*\x60_]/g,'').replace(/\s+/g,' ').trim();
+}
+
+export function isSessionLabel(text){
+ return /^session\s+\d+(?:\s+part\s+\d+)?$/i.test(String(text).replace(/<[^>]*>/g,'').replace(/[*_\x60]/g,'').trim());
+}
+export function makeNoteSectionsCollapsible(container){
+ const doc=container.ownerDocument;
+ for(const heading of Array.from(container.children)){
+  if(heading.tagName!=='H2'||heading.parentElement!==container)continue;
+  const section=doc.createElement('details'),summary=doc.createElement('summary'),body=doc.createElement('div');
+  section.className='note-section';section.open=true;body.className='note-section-body';
+  container.insertBefore(section,heading);section.append(summary,body);summary.append(heading);
+  while(section.nextSibling&&!/^(H1|H2)$/.test(section.nextSibling.nodeName))body.append(section.nextSibling);
+ }
+}
+export function revealNoteSection(target){
+ for(let parent=target?.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
 }

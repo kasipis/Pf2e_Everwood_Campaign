@@ -24,9 +24,8 @@ Supported features:
 - Responsive fit mode, resize handling, active base image and visible image overlays.
 - Full note pages and a matching note description beneath each map.
 
-Only `zoommap` and `zoom-map` blocks are rendered. The Maps gallery includes only
-notes containing these blocks. Vault notes and installed plugins are not modified
-by the renderer migration. Drawings, grids, text-layer editing, measurements and
+Only `zoommap` and `zoom-map` blocks are rendered. Open map notes from Locations
+or search results. Vault notes and installed plugins are not modified. Drawings, grids, text-layer editing, measurements and
 travel tools are not implemented in this read-only viewer.
 
 ## Vault data
@@ -36,9 +35,14 @@ The local server reads `../Obsidian Campaign` every two seconds. Markers come fr
 data. Hidden marker layers are respected. Image, note, sidecar and icon-setting
 changes are included in live sync. Vault access is read-only.
 
-Map notes stay under My maps. Clicking a marker opens its linked map or note
-immediately. The sidebar is sorted by marker type, then by name. An ordinary note
-with the same filename as a Maps note is shown below that map.
+The landing page shows living player characters with full-quality portraits.
+The Workspace sidebar provides All Notes and a page for each main note type.
+It expands on hover, moving the page with it. Search matches note and directory
+titles and clears when a result opens.
+
+Interactive map notes fill the available viewport, with location text below.
+Clicking a marker opens its linked map or note immediately. Mapped locations
+are sorted by marker type, then by name.
 
 ## Source and verification
 
@@ -63,8 +67,8 @@ Start command: `npm start`
 
 The build produces a portable `dist/` folder containing the Node server, site,
 and a snapshot of the current vault. Deploy that folder on a Node.js 20+ host,
-then run `npm start` from inside it, or `node server.mjs`. No dependency install
-is required for the built folder. The root project also supports `npm start`,
+then run `npm install --omit=dev` and `npm start` from inside it.
+Alternatively, use `node server.mjs` after installing dependencies. The root project also supports `npm start`,
 which runs `node dist/server.mjs` after a build. `Procfile` declares that command
 for platforms that use it. This configuration does not publish to the old site.
 
@@ -115,8 +119,6 @@ and an old version URL never receives immutable caching for different content.
 Image requests reuse the recent vault index rather than scanning the vault for
 every asset. The unrelated Zoom Map SVG library folder is excluded from indexing.
 
-On the current vault, the map index builds all 11 maps from metadata with zero
-upfront browser image loads, replacing the previous 11 sequential image loads.
-This is a request-count check, not a measured end-to-end browser speedup.
-
-Character overview portraits use cached 320px WebP thumbnails, generated during builds and refreshed when vault images change. Full note portraits use their original images. If deploying only dist/, run npm install --omit=dev there before starting the server.
+Note previews and search results use cached 320px WebP portrait thumbnails,
+generated during builds and refreshed when vault images change. The Heroes
+landing page and full character notes use original-quality portraits.
